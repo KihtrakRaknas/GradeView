@@ -28,10 +28,18 @@ function func(){
     await page.goto(url, {waitUntil: 'networkidle2'});
     await page.goto(url2, {waitUntil: 'networkidle2'});
     await page.evaluate(text => [...document.querySelectorAll('*')].find(e => e.textContent.trim() === text).click(), "Gradebook");
+	await page.waitForNavigation({ waitUntil: 'networkidle2' })
+
+	await page.evaluate(() => switchMarkingPeriod("MP1"));
+    await page.waitForNavigation({ waitUntil: 'networkidle2' })
+	console.log(await page.evaluate(text => console.log(document.getElementsByName("fldMarkingPeriod")[0].text())));
+
+	await page.evaluate(() => switchMarkingPeriod("MP1"));
     await page.waitForNavigation({ waitUntil: 'networkidle2' })
     const html = await page.content();
+	
     await page.screenshot({path: 'examples.png'});
-
+	var grades = {}
     await $('.list', html).find("tbody").each(function() {
         console.log($(this).find(".categorytab").text());
     });
