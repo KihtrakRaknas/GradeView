@@ -17,13 +17,13 @@ function func(){
         slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
       });
     const page = await browser.newPage();
-    
-    page.on('request', request => {
+
+    /*page.on('request', request => {
       if (request.resourceType() === 'image')
         request.abort();
       else
         request.continue();
-  });
+  });*/
 
     await page.goto(url, {waitUntil: 'networkidle2'});
     await page.goto(url2, {waitUntil: 'networkidle2'});
@@ -31,7 +31,7 @@ function func(){
     await page.waitForNavigation({ waitUntil: 'networkidle2' })
     const html = await page.content();
     await page.screenshot({path: 'examples.png'});
-  
+
     await $('.list', html).find("tbody").each(function() {
         console.log($(this).find(".categorytab").text());
     });
@@ -39,7 +39,7 @@ function func(){
     await browser.close();
 
   })();
-  
+
 
 /*puppeteer
   .launch()
@@ -53,7 +53,7 @@ function func(){
             page.evaluate(text => [...document.querySelectorAll('*')].find(e => e.textContent.trim() === text).click(), "Gradebook")
             //console.log(page.content())
             page.waitForNavigation({ waitUntil: 'networkidle0' })
-            
+
             return page.content();
         });
     });
@@ -66,5 +66,3 @@ function func(){
   .catch(function(err) {
     //handle error
   });*/
-
-  
