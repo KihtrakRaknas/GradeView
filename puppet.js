@@ -3,7 +3,7 @@ const $ = require('cheerio');
 const url = 'https://students.sbschools.org/genesis/parents?gohome=true';
 
 var email = '10013096@sbstudents.org';
-var pass = 'Tint@%79';
+var pass = '';
 var url2 = encodeURI('https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass);
 
 function func(){
@@ -14,7 +14,7 @@ function func(){
 (async () => {
     const browser = await puppeteer.launch({
         headless: false, // launch headful mode
-        slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
+        //slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
       });
     const page = await browser.newPage();
 
@@ -30,19 +30,46 @@ function func(){
     await page.evaluate(text => [...document.querySelectorAll('*')].find(e => e.textContent.trim() === text).click(), "Gradebook");
 	await page.waitForNavigation({ waitUntil: 'networkidle2' })
 
-	await page.evaluate(() => switchMarkingPeriod("MP1"));
-    await page.waitForNavigation({ waitUntil: 'networkidle2' })
-	console.log(await page.evaluate(text => console.log(document.getElementsByName("fldMarkingPeriod")[0].text())));
+    const markingPeriods = await page.evaluate( () => (Array.from( (document.querySelectorAll( '[name="fldMarkingPeriod"]')[0]).childNodes, element => element.value ) ));
 
-	await page.evaluate(() => switchMarkingPeriod("MP1"));
-    await page.waitForNavigation({ waitUntil: 'networkidle2' })
-    const html = await page.content();
-	
-    await page.screenshot({path: 'examples.png'});
-	var grades = {}
-    await $('.list', html).find("tbody").each(function() {
-        console.log($(this).find(".categorytab").text());
-    });
+    console.log( "0:" + markingPeriods );
+    var grades = {}
+    for(var period of markingPeriods){
+      if(period!=null){
+        console.log(period);
+        await page.evaluate((markingPeriod) => switchMarkingPeriod(markingPeriod),period);
+        await page.waitForNavigation({ waitUntil: 'networkidle2' })
+
+        const html = await page.content();
+      
+        await page.screenshot({path: period+'examples.png'});
+      
+        await $('.list', html).find("tbody").find(".categorytab").each(function() {
+          const className = $(this).text().trim();
+            console.log("OUT: "+className);
+            if(!grades[className])
+              grades[className] = {}
+            var teacherName = $(this).parent().parent().find(".cellLeft").eq(1).text().trim();
+            teacherName=teacherName.substring(0,teacherName.indexOf("\n"));
+            console.log(teacherName);
+            if(!grades[className]["teacher"])
+              grades[className]["teacher"]=teacherName;
+              
+
+              //var avg = $(this).parent().parent().find($("td[title='View Course Summary']")).textContent;
+              var avg = $(this).parent().parent().find(".cellRight").eq(0).text().trim();
+              avg=avg.substring(0,avg.indexOf("\n"));
+              console.log(avg);
+            if(!grades[className][period])
+              grades[className][period]={}
+            grades[className][period]["avg"]=avg;
+        });
+      }
+    }
+
+    console.log(grades);
+
+
 
     await browser.close();
 
