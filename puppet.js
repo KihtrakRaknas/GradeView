@@ -14,7 +14,7 @@ function func(){
 (async () => {
     const browser = await puppeteer.launch({
         headless: false, // launch headful mode
-        //slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
+        slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
       });
     const page = await browser.newPage();
 
@@ -37,13 +37,25 @@ function func(){
     for(var period of markingPeriods){
       if(period!=null){
         console.log(period);
-        await page.evaluate((markingPeriod) => switchMarkingPeriod(markingPeriod),period);
-        await page.waitForNavigation({ waitUntil: 'networkidle2' })
+        navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
+        await page.evaluate(text => [...document.querySelectorAll('*')].find(e => e.textContent.trim() === text).click(), "Gradebook");
+        await navresponse
+        
+        navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
+        const currentMarking = await page.evaluate( () => ((document.querySelectorAll( '[name="fldMarkingPeriod"]')[0]).value));
+        
+        if(currentMarking!=period){
+          console.log("diff"+currentMarking+":"+period)
+          await page.evaluate((markingPeriod) => switchMarkingPeriod(markingPeriod),period);
+          console.log("switch")
+          await navresponse
+          
+        }
 
         const html = await page.content();
       
         await page.screenshot({path: period+'examples.png'});
-      
+        var title
         await $('.list', html).find("tbody").find(".categorytab").each(function() {
           const className = $(this).text().trim();
             console.log("OUT: "+className);
@@ -63,7 +75,33 @@ function func(){
             if(!grades[className][period])
               grades[className][period]={}
             grades[className][period]["avg"]=avg;
+            grades[className]["title"]= $(this).prop('title');
+
+
         });
+        for(var classs in grades){
+          console.log(grades[classs]["title"]); 
+          navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
+          console.log(navresponse)
+          page.click("span[title='"+grades[classs]["title"]+"']");
+          console.log("clicked")
+          await navresponse;
+          console.log("response")
+          await page.screenshot({path: classs+'examples.png'});
+          console.log("Going to grade book");
+          navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
+          await page.evaluate(text => [...document.querySelectorAll('*')].find(e => e.textContent.trim() === text).click(), "Gradebook");
+          await navresponse;
+          //await page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);//page.waitForNavigation({ waitUntil: 'networkidle2' })
+          console.log("Slecting marking");
+          navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
+          await page.evaluate((markingPeriod) => switchMarkingPeriod(markingPeriod),period);
+          //await page.waitForNavigation({ waitUntil: 'networkidle2' })
+          await navresponse;
+          console.log(navresponse)
+          
+        }
+        
       }
     }
 
