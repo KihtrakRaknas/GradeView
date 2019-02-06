@@ -88,14 +88,13 @@ function func(){
         var html2 = await page.content();
         for(var classs in grades){
           console.log(grades[classs]["title"]);
-          navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
           console.log(navresponse)
-
-          console.log($("span[title='"+grades[classs]["title"]+"']",html2).text());
+          const text = await page.evaluate((text) => document.querySelector("span[title='"+text+"']").textContent,grades[classs]["title"]);
+          console.log(text);
+          navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
           var res = page.click("span[title='"+grades[classs]["title"]+"']");
-
           console.log("res")
-          await res;
+          //await res;
           console.log(res)
           await navresponse;
           console.log("response")
@@ -114,7 +113,7 @@ function func(){
           html2 = page.content();
           console.log("html2");
           await page.screenshot({path: 'examples.png'});
-			await html2;
+			    //await html2;
         }
 
       }
