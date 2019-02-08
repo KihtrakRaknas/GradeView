@@ -39,6 +39,7 @@ function func(){
     const markingPeriods = await page.evaluate( () => (Array.from( (document.querySelectorAll( '[name="fldMarkingPeriod"]')[0]).childNodes, element => element.value ) ));
 
     console.log( "0:" + markingPeriods );
+    var htmlOld = await page.content();
     var grades = {}
     for(var period of markingPeriods){
       if(period!=null){
@@ -46,19 +47,27 @@ function func(){
         navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
         await page.evaluate(text => [...document.querySelectorAll('*')].find(e => e.textContent.trim() === text).click(), "Gradebook");
         await navresponse
+        console.log("navigated to gradebook")
 
         navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
         const currentMarking = await page.evaluate( () => ((document.querySelectorAll( '[name="fldMarkingPeriod"]')[0]).value));
-
+		console.log("diff"+currentMarking+":"+period)
+		var htmlTemp;
         if(currentMarking!=period){
-          console.log("diff"+currentMarking+":"+period)
+			console.log("switchSTART")
           await page.evaluate((markingPeriod) => switchMarkingPeriod(markingPeriod),period);
           console.log("switch")
           await navresponse
+          	var htmlTemp = await page.content();
+        	console.log("HTML1");
 
-        }
+        }else{
+			htmlTemp = htmlOld;
+			console.log("tempDone");
+		}
 
-        const html = await page.content();
+		const html = htmlTemp;
+		console.log(html);
 
         await page.screenshot({path: period+'examples.png'});
         var title
@@ -117,7 +126,9 @@ console.log(e)
           console.log("html2");
           await page.screenshot({path: 'examples.png'});
 			    //await html2;
+
         }
+        htmlOld = html2;
 
       }
     }
