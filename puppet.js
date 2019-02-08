@@ -19,10 +19,10 @@ function func(){
       });
     const page = await browser.newPage();
 
-    await page.setViewport({
+    /*await page.setViewport({
 	    width: 1920,
 	    height: 1080
-	})
+	})*/
 
     /*page.on('request', request => {
       if (request.resourceType() === 'image')
@@ -89,13 +89,16 @@ function func(){
         for(var classs in grades){
           console.log(grades[classs]["title"]);
           console.log(navresponse)
-          const text = await page.evaluate((text) => document.querySelector("span[title='"+text+"']").textContent,grades[classs]["title"]);
-          console.log(text);
+
           navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
-          var res = page.click("span[title='"+grades[classs]["title"]+"']");
+try{
+		await page.evaluate((text) => document.querySelector("span[title='"+text+"']").click(),grades[classs]["title"]);
+          //var res = page.click("span[title='"+grades[classs]["title"]+"']");
+}catch(e){
+console.log(e)
+}
           console.log("res")
           //await res;
-          console.log(res)
           await navresponse;
           console.log("response")
           //await page.screenshot({path: classs+'examples.png'});
