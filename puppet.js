@@ -105,16 +105,44 @@ function func(){
           console.log(navresponse)
 
           navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
-try{
-		await page.evaluate((text) => document.querySelector("span[title='"+text+"']").click(),grades[classs]["title"]);
-          //var res = page.click("span[title='"+grades[classs]["title"]+"']");
-}catch(e){
-console.log(e)
-}
+
+          try{
+              await page.evaluate((text) => document.querySelector("span[title='"+text+"']").click(),grades[classs]["title"]);
+                    //var res = page.click("span[title='"+grades[classs]["title"]+"']");
+          }catch(e){
+            console.log(e)
+          }
+
           console.log("res")
           //await res;
           await navresponse;
           console.log("response")
+
+          var list = await page.evaluate(() => {
+            var assignments = [];
+            for(var node of document.getElementsByClassName("list")[0].childNodes[1].childNodes){
+				
+              if(node.classList && !node.classList.contains("listheading")&&node.childNodes.length>=11){
+                var assignData={};
+                
+                //console.log(node.childNodes);
+                console.log(node.childNodes[3].innerText);
+                  assignData["Date"] = node.childNodes[3].innerText;
+                console.log(node.childNodes[7].innerText);
+                assignData["Category"] = node.childNodes[7].innerText
+                console.log(node.childNodes[9].innerText);
+                assignData["Name"] = node.childNodes[9].innerText;
+                console.log(node.childNodes[11].childNodes[0].textContent.replace(/\s/g,''));
+                assignData["Grade"] = node.childNodes[11].childNodes[0].textContent.replace(/\s/g,'')
+                assignments.push(assignData);
+                }
+            }
+            return assignments;
+          });
+          grades[classs][period]["Assignments"] = list;
+          console.log(grades[classs][period]["Assignments"]);
+
+
           //await page.screenshot({path: classs+'examples.png'});
           console.log("Going to grade book");
           navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
