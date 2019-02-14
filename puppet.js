@@ -41,6 +41,7 @@ function func(){
     console.log( "0:" + markingPeriods );
     var htmlOld = await page.content();
     var grades = {}
+    var isCurrentMarking = false;
     for(var period of markingPeriods){
       if(period!=null){
         console.log(period);
@@ -60,13 +61,14 @@ function func(){
           await navresponse
           	var htmlTemp = await page.content();
         	console.log("HTML1");
-
+          isCurrentMarking = false;
         }else{
 			htmlTemp = htmlOld;
-			console.log("tempDone");
+      console.log("tempDone");
+      isCurrentMarking = true;
 		}
 
-		const html = htmlTemp;
+    const html = htmlTemp;
 		console.log(html);
 
         await page.screenshot({path: period+'examples.png'});
@@ -94,7 +96,10 @@ function func(){
 
 
         });
-        var html2 = await page.content();
+        console.log("done");
+        if(!isCurrentMarking)
+          var html2 = await page.content();
+        console.log(grades);
         for(var classs in grades){
           console.log(grades[classs]["title"]);
           console.log(navresponse)
@@ -116,16 +121,17 @@ console.log(e)
           await page.evaluate(text => [...document.querySelectorAll('*')].find(e => e.textContent.trim() === text).click(), "Gradebook");
           await navresponse;
           //await page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);//page.waitForNavigation({ waitUntil: 'networkidle2' })
-          console.log("Slecting marking");
-          navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
-          await page.evaluate((markingPeriod) => switchMarkingPeriod(markingPeriod),period);
-          //await page.waitForNavigation({ waitUntil: 'networkidle2' })
-          await navresponse;
-          console.log(navresponse)
-          html2 = page.content();
-          console.log("html2");
-          await page.screenshot({path: 'examples.png'});
-			    //await html2;
+          if(!isCurrentMarking){
+            console.log("Slecting marking");
+
+            navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
+            
+            await page.evaluate((markingPeriod) => switchMarkingPeriod(markingPeriod),period);
+            //await page.waitForNavigation({ waitUntil: 'networkidle2' })
+            await navresponse;
+            //console.log(navresponse)
+            await page.screenshot({path: 'examples.png'});
+          }
 
         }
         htmlOld = html2;
