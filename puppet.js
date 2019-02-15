@@ -1,5 +1,17 @@
 const puppeteer = require('puppeteer');
 const $ = require('cheerio');
+const express = require('express')
+
+const app = express()
+const port = 3000
+
+app.get('/', async (req, res) => {
+	var dataObj = await getData()
+	res.send(dataObj)
+	})
+
+app.listen(port, () => console.log(`Example app listening on port ${port}!`))
+
 const url = 'https://students.sbschools.org/genesis/parents?gohome=true';
 
 var id = '10012734'
@@ -12,11 +24,11 @@ function func(){
 }
 
 
-(async () => {
-    const browser = await puppeteer.launch({
+async function getData() {
+    const browser = await puppeteer.launch(/*{
         headless: false, // launch headful mode
         slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
-      });
+      }*/);
     const page = await browser.newPage();
 
     /*await page.setViewport({
@@ -121,10 +133,10 @@ function func(){
           var list = await page.evaluate(() => {
             var assignments = [];
             for(var node of document.getElementsByClassName("list")[0].childNodes[1].childNodes){
-				
+
               if(node.classList && !node.classList.contains("listheading")&&node.childNodes.length>=11){
                 var assignData={};
-                
+
                 //console.log(node.childNodes);
                 console.log(node.childNodes[3].innerText);
                   assignData["Date"] = node.childNodes[3].innerText;
@@ -153,7 +165,7 @@ function func(){
             console.log("Slecting marking");
 
             navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
-            
+
             await page.evaluate((markingPeriod) => switchMarkingPeriod(markingPeriod),period);
             //await page.waitForNavigation({ waitUntil: 'networkidle2' })
             await navresponse;
@@ -173,7 +185,9 @@ function func(){
 
     await browser.close();
 
-  })();
+    return grades;
+
+  }
 
 
 /*puppeteer
