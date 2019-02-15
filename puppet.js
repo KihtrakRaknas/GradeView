@@ -1,11 +1,16 @@
 const puppeteer = require('puppeteer');
 const $ = require('cheerio');
 const express = require('express')
+const bodyParser = require('body-parser');
 
 const app = express()
 const port = 3000
+app.use(bodyParser.json());
 
-app.get('/', async (req, res) => {
+app.post('/', async (req, res) => {
+	//const username = req.body.username;
+	//const password = .password;
+	console.log(req.body);
 	var dataObj = await getData()
 	res.send(dataObj)
 	})
