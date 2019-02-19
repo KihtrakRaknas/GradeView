@@ -6,12 +6,14 @@ const bodyParser = require('body-parser');
 const app = express()
 const port = 3000
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
 app.post('/', async (req, res) => {
-	//const username = req.body.username;
-	//const password = .password;
+	const username = req.body.username;//'10012734'
+	const password = req.body.password; //'Sled%2#9'
+	console.log(username	);
 	console.log(req.body);
-	var dataObj = await getData()
+	var dataObj = await getData(username,password)
 	res.send(dataObj)
 	})
 
@@ -19,21 +21,23 @@ app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 
 const url = 'https://students.sbschools.org/genesis/parents?gohome=true';
 
-var id = '10012734'
-var email = encodeURIComponent(id+'@sbstudents.org');
-var pass = encodeURIComponent('Sled%2#9');
-var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
+//var id = '10012734'
+
 
 function func(){
     eval("header_goToTab('studentdata&tab2=gradebook','studentid="+id+"');");
 }
 
 
-async function getData() {
-    const browser = await puppeteer.launch(/*{
+async function getData(id, pass) {
+	var email = encodeURIComponent(id+'@sbstudents.org');
+	pass = encodeURIComponent(pass);
+var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
+
+    const browser = await puppeteer.launch({/*
         headless: false, // launch headful mode
         slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
-      }*/);
+      */});
     const page = await browser.newPage();
 
     /*await page.setViewport({
@@ -41,12 +45,16 @@ async function getData() {
 	    height: 1080
 	})*/
 
-    /*page.on('request', request => {
-      if (request.resourceType() === 'image')
-        request.abort();
-      else
-        request.continue();
-  });*/
+    await page.setRequestInterception(true);
+
+    page.on('request', (req) => {
+        if(req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() === 'image' || req.resourceType() === 'media'){
+            req.abort();
+        }
+        else {
+            req.continue();
+        }
+	});
 
     await page.goto(url, {waitUntil: 'networkidle2'});
     await page.goto(url2, {waitUntil: 'networkidle2'});
