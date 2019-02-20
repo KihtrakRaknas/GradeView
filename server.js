@@ -96,7 +96,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
     const html = htmlTemp;
 		console.log(html);
 
-        await page.screenshot({path: period+'examples.png'});
+        //await page.screenshot({path: period+'examples.png'});
         var title
         await $('.list', html).find("tbody").find(".categorytab").each(function() {
           const className = $(this).text().trim();
@@ -183,7 +183,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
             //await page.waitForNavigation({ waitUntil: 'networkidle2' })
             await navresponse;
             //console.log(navresponse)
-            await page.screenshot({path: 'examples.png'});
+            //await page.screenshot({path: 'examples.png'});
           }
 
         }
