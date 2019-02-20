@@ -8,16 +8,10 @@ const port = 3000
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
-<<<<<<< HEAD:server.js
-app.get('/', async (req, res) => {
-	//const username = req.body.username;
-	//const password = .password;
-=======
 app.post('/', async (req, res) => {
 	const username = req.body.username;//'10012734'
 	const password = req.body.password; //'Sled%2#9'
 	console.log(username	);
->>>>>>> 4f8b106da9a3dbc8973ed096cad372ba7f0a4bed:puppet.js
 	console.log(req.body);
 	var dataObj = await getData(username,password)
 	res.send(dataObj)
@@ -27,28 +21,14 @@ app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 
 const url = 'https://students.sbschools.org/genesis/parents?gohome=true';
 
-<<<<<<< HEAD:server.js
-var id = '10012734'
-var pass = encodeURIComponent('Sled%2#9');
-var email = encodeURIComponent(id+'@sbstudents.org');
-var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
-=======
 //var id = '10012734'
 
->>>>>>> 4f8b106da9a3dbc8973ed096cad372ba7f0a4bed:puppet.js
 
 function func(){
     eval("header_goToTab('studentdata&tab2=gradebook','studentid="+id+"');");
 }
 
 
-<<<<<<< HEAD:server.js
-async function getData() {
-    const browser = await puppeteer.launch({/*
-        headless: false, // launch headful mode
-        slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
-    */});
-=======
 async function getData(id, pass) {
 	var email = encodeURIComponent(id+'@sbstudents.org');
 	pass = encodeURIComponent(pass);
@@ -58,7 +38,6 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
         headless: false, // launch headful mode
         slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
       */});
->>>>>>> 4f8b106da9a3dbc8973ed096cad372ba7f0a4bed:puppet.js
     const page = await browser.newPage();
 
     /*await page.setViewport({
