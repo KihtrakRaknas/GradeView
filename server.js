@@ -7,7 +7,7 @@ const app = express()
 const port = 3000
 app.use(bodyParser.json());
 
-app.post('/', async (req, res) => {
+app.get('/', async (req, res) => {
 	//const username = req.body.username;
 	//const password = .password;
 	console.log(req.body);
@@ -20,8 +20,8 @@ app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 const url = 'https://students.sbschools.org/genesis/parents?gohome=true';
 
 var id = '10012734'
-var email = encodeURIComponent(id+'@sbstudents.org');
 var pass = encodeURIComponent('Sled%2#9');
+var email = encodeURIComponent(id+'@sbstudents.org');
 var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
 
 function func(){
@@ -30,10 +30,10 @@ function func(){
 
 
 async function getData() {
-    const browser = await puppeteer.launch(/*{
+    const browser = await puppeteer.launch({/*
         headless: false, // launch headful mode
         slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
-      }*/);
+    */});
     const page = await browser.newPage();
 
     /*await page.setViewport({
