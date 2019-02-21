@@ -29,6 +29,8 @@ app.get('/', async (req, res) => {
 		console.log(req.body);
 		var obj = await storage.getItem(username);
 		if(obj!=null){
+			console.log("CACHED")
+			console.log(obj)
 					res.json(obj)
 			res.end();
 								var dataObj = await getData(username,password)
