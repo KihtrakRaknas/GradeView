@@ -23,6 +23,8 @@ app.get('/', async (req, res) => {
 		console.log(username	);
 		console.log(req.body);
 		var dataObj = await getData(username,password)
+		console.log("Request Completed")
+		console.log(dataObj);
 		res.json(dataObj)
 	})
 
@@ -105,7 +107,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
 		}
 
     const html = htmlTemp;
-		console.log(html);
+		//console.log(html);
 
         //await page.screenshot({path: period+'examples.png'});
         var title
@@ -202,7 +204,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
 
       }
     }
-
+	console.log("Function done")
     console.log(grades);
 
 
