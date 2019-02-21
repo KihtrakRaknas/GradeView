@@ -26,6 +26,7 @@ app.get('/', async (req, res) => {
 		console.log("Request Completed")
 		console.log(dataObj);
 		res.json(dataObj)
+		res.end();
 	})
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
