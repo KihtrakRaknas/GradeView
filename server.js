@@ -8,13 +8,22 @@ const port = process.env.PORT || 3000
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
-app.post('/', async (req, res) => {
+app.get('/', async (req, res) => {
 	const username = req.body.username;//'10012734'
 	const password = req.body.password; //'Sled%2#9'
 	console.log(username	);
 	console.log(req.body);
 	var dataObj = await getData(username,password)
-	res.send(dataObj)
+	res.json(dataObj)
+	})
+
+	app.post('/', async (req, res) => {
+		const username = req.body.username;//'10012734'
+		const password = req.body.password; //'	'
+		console.log(username	);
+		console.log(req.body);
+		var dataObj = await getData(username,password)
+		res.json(dataObj)
 	})
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
