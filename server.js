@@ -2,6 +2,10 @@ const puppeteer = require('puppeteer');
 const $ = require('cheerio');
 const express = require('express')
 const bodyParser = require('body-parser');
+const storage = require('node-persist');
+
+
+await storage.init( /* options ... */ );
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -18,15 +22,28 @@ app.get('/', async (req, res) => {
 	})
 
 	app.post('/', async (req, res) => {
+
 		const username = req.body.username;//'10012734'
 		const password = req.body.password; //'	'
 		console.log(username	);
 		console.log(req.body);
-		var dataObj = await getData(username,password)
-		console.log("Request Completed")
-		console.log(dataObj);
-		res.json(dataObj)
+		var obj = await storage.getItem(username);
+		if(!=null){
+					res.json(obj)
+			res.end();
+								var dataObj = await getData(username,password)
+								console.log("Request Completed")
+								console.log(dataObj);
+					await storage.setItem(username,dataObj)
+		}else{
+					var dataObj = await getData(username,password)
+					console.log("Request Completed")
+					console.log(dataObj);
+					await storage.setItem(username,dataObj)
+					res.json(dataObj)
 		res.end();
+		}
+
 	})
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
