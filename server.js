@@ -34,12 +34,12 @@ app.get('/', async (req, res) => {
 								var dataObj = await getData(username,password)
 								console.log("Request Completed")
 								console.log(dataObj);
-					await storage.setItem(username,dataObj)
+					storage.setItem(username,dataObj)
 		}else{
 					var dataObj = await getData(username,password)
 					console.log("Request Completed")
 					console.log(dataObj);
-					await storage.setItem(username,dataObj)
+					storage.setItem(username,dataObj)
 					res.json(dataObj)
 		res.end();
 		}
