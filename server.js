@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const storage = require('node-persist');
 
 
-await storage.init( /* options ... */ );
+storage.init( /* options ... */ );
 
 const app = express()
 const port = process.env.PORT || 3000
