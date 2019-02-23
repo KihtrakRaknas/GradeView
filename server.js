@@ -38,6 +38,7 @@ app.get('/', async (req, res) => {
 								console.log(dataObj);
 					storage.setItem(username,dataObj)
 		}else{
+			res.send("loading...")
 					var dataObj = await getData(username,password)
 					console.log("Request Completed")
 					console.log(dataObj);
