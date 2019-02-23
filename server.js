@@ -2,19 +2,50 @@ const puppeteer = require('puppeteer');
 const $ = require('cheerio');
 const express = require('express')
 const bodyParser = require('body-parser');
+const storage = require('node-persist');
+
+
+storage.init( /* options ... */ );
 
 const app = express()
 const port = process.env.PORT || 3000
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
-app.post('/', async (req, res) => {
+app.get('/', async (req, res) => {
 	const username = req.body.username;//'10012734'
 	const password = req.body.password; //'Sled%2#9'
 	console.log(username	);
 	console.log(req.body);
 	var dataObj = await getData(username,password)
-	res.send(dataObj)
+	res.json(dataObj)
+	})
+
+	app.post('/', async (req, res) => {
+
+		const username = req.body.username;//'10012734'
+		const password = req.body.password; //'	'
+		console.log(username	);
+		console.log(req.body);
+		var obj = await storage.getItem(username);
+		if(obj!=null){
+			console.log("CACHED")
+			console.log(obj)
+					res.json(obj)
+			res.end();
+								var dataObj = await getData(username,password)
+								console.log("Request Completed")
+								console.log(dataObj);
+					storage.setItem(username,dataObj)
+		}else{
+					var dataObj = await getData(username,password)
+					console.log("Request Completed")
+					console.log(dataObj);
+					storage.setItem(username,dataObj)
+					res.json(dataObj)
+		res.end();
+		}
+
 	})
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
@@ -96,7 +127,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
 		}
 
     const html = htmlTemp;
-		console.log(html);
+		//console.log(html);
 
         //await page.screenshot({path: period+'examples.png'});
         var title
@@ -193,7 +224,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
 
       }
     }
-
+	console.log("Function done")
     console.log(grades);
 
 
