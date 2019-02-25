@@ -38,7 +38,7 @@ app.get('/', async (req, res) => {
 								console.log(dataObj);
 					storage.setItem(username,dataObj)
 		}else{
-			res.send("loading...")
+			res.send({"Status":"loading..."})
 					var dataObj = await getData(username,password)
 					console.log("Request Completed")
 					console.log(dataObj);
@@ -225,6 +225,8 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
 
       }
     }
+
+    grades["Status"] = "Completed";
 	console.log("Function done")
     console.log(grades);
 
