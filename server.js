@@ -41,7 +41,7 @@ app.get('/', async (req, res) => {
 					storage.setItem(username,dataObj)
 		}else{
       res.json({"Status":"loading..."})
-      if(!currentUsers.includes(username)){}
+      if(!currentUsers.includes(username)){
             currentUsers.push(username)
             var dataObj = await getData(username,password)
             
