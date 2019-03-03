@@ -12,6 +12,8 @@ const port = process.env.PORT || 3000
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
+var currentUsers=[];
+
 app.get('/', async (req, res) => {
 	const username = req.body.username;//'10012734'
 	const password = req.body.password; //'Sled%2#9'
@@ -38,12 +40,19 @@ app.get('/', async (req, res) => {
 								console.log(dataObj);
 					storage.setItem(username,dataObj)
 		}else{
-			res.json({"Status":"loading..."})
-					var dataObj = await getData(username,password)
-					console.log("Request Completed")
-					console.log(dataObj);
-					storage.setItem(username,dataObj)
-					res.json(dataObj)
+      res.json({"Status":"loading..."})
+      if(!currentUsers.includes(username)){}
+            currentUsers.push(username)
+            var dataObj = await getData(username,password)
+            
+            var index = currentUsers.indexOf(username);
+            if (index !== -1) currentUsers.splice(index, 1);
+
+            console.log("Request Completed")
+            console.log(dataObj);
+            storage.setItem(username,dataObj)
+            res.json(dataObj)
+      }
 		res.end();
 		}
 
