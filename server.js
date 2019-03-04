@@ -31,10 +31,16 @@ app.get('/', async (req, res) => {
 		if(obj!=null){
 			console.log("returning cached object")
 					res.json(obj)
-			res.end();
+      res.end();
+      if(!currentUsers.includes(username)){
+        currentUsers.push(username)
 				var dataObj = await getData(username,password)
 				console.log("Updating cache for future requests")
-				storage.setItem(username,dataObj)
+        storage.setItem(username,dataObj)
+        
+        var index = currentUsers.indexOf(username);
+        if (index !== -1) currentUsers.splice(index, 1);
+      }
 		}else{
       console.log("cached object not found")
       res.json({"Status":"loading..."})
