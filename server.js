@@ -15,10 +15,10 @@ app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 var currentUsers=[];
 
 app.get('/', async (req, res) => {
-	const username = req.body.username;//'10012734'
+	const email = req.body.username;//'10012734'
 	const password = req.body.password; //'Sled%2#9'
 	console.log(req.body);
-	var dataObj = await getData(username,password)
+	var dataObj = await getData(email,password)
 	res.json(dataObj)
 	})
 
@@ -72,8 +72,8 @@ function func(){
 }
 
 
-async function getData(id, pass) {
-	var email = encodeURIComponent(id+'@sbstudents.org');
+async function getData(email, pass) {
+	var email = encodeURIComponent(email);
 	pass = encodeURIComponent(pass);
 var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
 
