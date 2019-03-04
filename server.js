@@ -26,35 +26,55 @@ app.get('/', async (req, res) => {
 		var obj //= await storage.getItem(username);
 		if(obj!=null){
 			console.log("returning cached object")
-					res.json(obj)
+			res.json(obj)
       res.end();
-      if(!currentUsers.includes(username)){
-        currentUsers.push(username)
-				var dataObj = await getData(username,password)
-				console.log("Updating cache for future requests")
-        storage.setItem(username,dataObj)
-
-        var index = currentUsers.indexOf(username);
-        if (index !== -1) currentUsers.splice(index, 1);
-      }
 		}else{
       console.log("cached object not found")
       res.json({"Status":"loading..."})
-      if(!currentUsers.includes(username)){
-            currentUsers.push(username)
-            var dataObj = await getData(username,password)
-
-            var index = currentUsers.indexOf(username);
-            if (index !== -1) currentUsers.splice(index, 1);
-
-            console.log("Updated cache")
-            storage.setItem(username,dataObj)
-            //res.json(dataObj)
-      }
-		res.end();
 		}
+    if(!currentUsers.includes(username)){
+      currentUsers.push(username)
+      console.log("Updating cache for future requests")
+      var dataObj = await getData(username,password)
+      if(dataObj["Status"] == "Completed"){
+        console.log(dataObj["Status"])
+        storage.setItem(username,dataObj)
+      }else{
+        console.log("Not cached due to bad request")
+      }
 
-	})
+      var index = currentUsers.indexOf(username);
+      if (index !== -1) currentUsers.splice(index, 1);
+    }
+    res.end();
+  })
+  
+  app.post('/check', async (req, res) => {
+
+		const username = req.body.username;//'10012734'
+		const password = req.body.password; //'	'
+    console.log(req.body);
+    var signedIn = await checkUser(username,password)
+			res.json({valid: signedIn})
+		  res.end();
+    
+      if(!currentUsers.includes(username)){
+        currentUsers.push(username)
+        console.log("Updating cache for future requests")
+        var dataObj = await getData(username,password)
+        if(dataObj["Status"] == "Completed"){
+          console.log(dataObj["Status"])
+          storage.setItem(username,dataObj)
+        }else{
+          console.log("Not cached due to bad request")
+        }
+  
+        var index = currentUsers.indexOf(username);
+        if (index !== -1) currentUsers.splice(index, 1);
+      }
+
+  })
+
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 
@@ -67,6 +87,42 @@ function func(){
     eval("header_goToTab('studentdata&tab2=gradebook','studentid="+id+"');");
 }
 
+async function checkUser(email,pass) {
+    email = encodeURIComponent(email);
+    pass = encodeURIComponent(pass);
+    var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
+  
+      const browser = await puppeteer.launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        /*
+          headless: false, // launch headful mode
+          slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
+        */
+        });
+      const page = await browser.newPage();
+  
+      /*await page.setViewport({
+        width: 1920,
+        height: 1080
+    })*/
+  
+      await page.setRequestInterception(true);
+  
+      page.on('request', (req) => {
+          if(req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() === 'image' || req.resourceType() === 'media'){
+              req.abort();
+          }
+          else {
+              req.continue();
+          }
+    });
+  
+      await page.goto(url, {waitUntil: 'networkidle2'});
+      await page.goto(url2, {waitUntil: 'networkidle2'});
+  
+      var signedIn = !await $('.sectionTitle', await page.content()).text().trim() == "Invalid user name or password.  Please try again.";
+        return signedIn;
+}
 
 async function getData(email, pass) {
 	var email = encodeURIComponent(email);
@@ -75,10 +131,10 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
 
     const browser = await puppeteer.launch({
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      /*
+      ///*
         headless: false, // launch headful mode
         slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
-      */
+      //*/
       });
     const page = await browser.newPage();
 
@@ -101,9 +157,12 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
     await page.goto(url, {waitUntil: 'networkidle2'});
     await page.goto(url2, {waitUntil: 'networkidle2'});
 
-    var signedIn = await page.evaluate(() => {
-		document.getElementsByClassName("sectionTitle")[0]
-	});
+    var signedIn = !await $('.sectionTitle', await page.content()).text().trim() == "Invalid user name or password.  Please try again.";
+    if(!signedIn){
+      await browser.close();
+      console.log("BAD user||pass")
+      return {Status:"Invalid"};
+    }
 
 	console.log(signedIn);
 
