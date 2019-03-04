@@ -15,11 +15,7 @@ app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 var currentUsers=[];
 
 app.get('/', async (req, res) => {
-	const email = req.body.username;//'10012734'
-	const password = req.body.password; //'Sled%2#9'
-	console.log(req.body);
-	var dataObj = await getData(email,password)
-	res.json(dataObj)
+	res.json({get:"gotten"})
 	})
 
 	app.post('/', async (req, res) => {
@@ -27,7 +23,7 @@ app.get('/', async (req, res) => {
 		const username = req.body.username;//'10012734'
 		const password = req.body.password; //'	'
 		console.log(req.body);
-		var obj = await storage.getItem(username);
+		var obj //= await storage.getItem(username);
 		if(obj!=null){
 			console.log("returning cached object")
 					res.json(obj)
@@ -37,7 +33,7 @@ app.get('/', async (req, res) => {
 				var dataObj = await getData(username,password)
 				console.log("Updating cache for future requests")
         storage.setItem(username,dataObj)
-        
+
         var index = currentUsers.indexOf(username);
         if (index !== -1) currentUsers.splice(index, 1);
       }
@@ -47,7 +43,7 @@ app.get('/', async (req, res) => {
       if(!currentUsers.includes(username)){
             currentUsers.push(username)
             var dataObj = await getData(username,password)
-            
+
             var index = currentUsers.indexOf(username);
             if (index !== -1) currentUsers.splice(index, 1);
 
@@ -82,7 +78,8 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
       /*
         headless: false, // launch headful mode
         slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
-      */});
+      */
+      });
     const page = await browser.newPage();
 
     /*await page.setViewport({
@@ -103,6 +100,13 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
 
     await page.goto(url, {waitUntil: 'networkidle2'});
     await page.goto(url2, {waitUntil: 'networkidle2'});
+
+    var signedIn = await page.evaluate(() => {
+		document.getElementsByClassName("sectionTitle")[0]
+	});
+
+	console.log(signedIn);
+
     await page.evaluate(text => [...document.querySelectorAll('*')].find(e => e.textContent.trim() === text).click(), "Gradebook");
 	await page.waitForNavigation({ waitUntil: 'networkidle2' })
 
