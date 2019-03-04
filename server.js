@@ -121,7 +121,12 @@ async function checkUser(email,pass) {
       await page.goto(url2, {waitUntil: 'networkidle2'});
   
       var signedIn = !await $('.sectionTitle', await page.content()).text().trim() == "Invalid user name or password.  Please try again.";
-        return signedIn;
+        
+      await browser.close();
+
+      return signedIn;
+
+      
 }
 
 async function getData(email, pass) {
