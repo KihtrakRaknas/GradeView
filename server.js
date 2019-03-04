@@ -17,7 +17,6 @@ var currentUsers=[];
 app.get('/', async (req, res) => {
 	const username = req.body.username;//'10012734'
 	const password = req.body.password; //'Sled%2#9'
-	console.log(username	);
 	console.log(req.body);
 	var dataObj = await getData(username,password)
 	res.json(dataObj)
@@ -27,19 +26,17 @@ app.get('/', async (req, res) => {
 
 		const username = req.body.username;//'10012734'
 		const password = req.body.password; //'	'
-		console.log(username	);
 		console.log(req.body);
 		var obj = await storage.getItem(username);
 		if(obj!=null){
-			console.log("CACHED")
-			console.log(obj)
+			console.log("returning cached object")
 					res.json(obj)
 			res.end();
-								var dataObj = await getData(username,password)
-								console.log("Request Completed")
-								console.log(dataObj);
-					storage.setItem(username,dataObj)
+				var dataObj = await getData(username,password)
+				console.log("Updating cache for future requests")
+				storage.setItem(username,dataObj)
 		}else{
+      console.log("cached object not found")
       res.json({"Status":"loading..."})
       if(!currentUsers.includes(username)){
             currentUsers.push(username)
@@ -48,10 +45,9 @@ app.get('/', async (req, res) => {
             var index = currentUsers.indexOf(username);
             if (index !== -1) currentUsers.splice(index, 1);
 
-            console.log("Request Completed")
-            console.log(dataObj);
+            console.log("Updated cache")
             storage.setItem(username,dataObj)
-            res.json(dataObj)
+            //res.json(dataObj)
       }
 		res.end();
 		}
@@ -106,13 +102,13 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
 
     const markingPeriods = await page.evaluate( () => (Array.from( (document.querySelectorAll( '[name="fldMarkingPeriod"]')[0]).childNodes, element => element.value ) ));
 
-    console.log( "0:" + markingPeriods );
+    console.log( "marking period:" + markingPeriods );
     var htmlOld = await page.content();
     var grades = {}
     var isCurrentMarking = false;
     for(var period of markingPeriods){
       if(period!=null){
-        console.log(period);
+        console.log("period: " + period);
         navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
         await page.evaluate(text => [...document.querySelectorAll('*')].find(e => e.textContent.trim() === text).click(), "Gradebook");
         await navresponse
@@ -120,7 +116,6 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
 
         navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
         const currentMarking = await page.evaluate( () => ((document.querySelectorAll( '[name="fldMarkingPeriod"]')[0]).value));
-		console.log("diff"+currentMarking+":"+period)
 		var htmlTemp;
         if(currentMarking!=period){
 			console.log("switchSTART")
@@ -143,12 +138,12 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
         var title
         await $('.list', html).find("tbody").find(".categorytab").each(function() {
           const className = $(this).text().trim();
-            console.log("OUT: "+className);
+            console.log("ClassName: "+className);
             if(!grades[className])
               grades[className] = {}
             var teacherName = $(this).parent().parent().find(".cellLeft").eq(1).text().trim();
             teacherName=teacherName.substring(0,teacherName.indexOf("\n"));
-            console.log(teacherName);
+            console.log("Teacher Name: "+teacherName);
             if(!grades[className]["teacher"])
               grades[className]["teacher"]=teacherName;
 
@@ -156,7 +151,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
               //var avg = $(this).parent().parent().find($("td[title='View Course Summary']")).textContent;
               var avg = $(this).parent().parent().find(".cellRight").eq(0).text().trim();
               avg=avg.substring(0,avg.indexOf("\n"));
-              console.log(avg);
+              console.log("Average"+avg);
             if(!grades[className][period])
               grades[className][period]={}
             grades[className][period]["avg"]=avg;
@@ -167,10 +162,8 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
         console.log("done");
         if(!isCurrentMarking)
           var html2 = await page.content();
-        console.log(grades);
         for(var classs in grades){
-          console.log(grades[classs]["title"]);
-          console.log(navresponse)
+          console.log("Getting grades for: "+grades[classs]["title"]);
 
           navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
 
@@ -178,7 +171,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
               await page.evaluate((text) => document.querySelector("span[title='"+text+"']").click(),grades[classs]["title"]);
                     //var res = page.click("span[title='"+grades[classs]["title"]+"']");
           }catch(e){
-            console.log(e)
+            console.log("Err: "+e)
           }
 
           console.log("res")
@@ -194,13 +187,13 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
                 var assignData={};
 
                 //console.log(node.childNodes);
-                console.log(node.childNodes[3].innerText);
+                //console.log(node.childNodes[3].innerText);
                   assignData["Date"] = node.childNodes[3].innerText;
-                console.log(node.childNodes[7].innerText);
+                //console.log(node.childNodes[7].innerText);
                 assignData["Category"] = node.childNodes[7].innerText
-                console.log(node.childNodes[9].innerText);
+                //console.log(node.childNodes[9].innerText);
                 assignData["Name"] = node.childNodes[9].innerText;
-                console.log(node.childNodes[11].childNodes[0].textContent.replace(/\s/g,''));
+                //console.log(node.childNodes[11].childNodes[0].textContent.replace(/\s/g,''));
                 assignData["Grade"] = node.childNodes[11].childNodes[0].textContent.replace(/\s/g,'')
                 assignments.push(assignData);
                 }
@@ -208,7 +201,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
             return assignments;
           });
           grades[classs][period]["Assignments"] = list;
-          console.log(grades[classs][period]["Assignments"]);
+          //console.log(grades[classs][period]["Assignments"]);
 
 
           //await page.screenshot({path: classs+'examples.png'});
@@ -237,7 +230,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
 
     grades["Status"] = "Completed";
 	console.log("Function done")
-    console.log(grades);
+    //console.log(grades);
 
 
 
