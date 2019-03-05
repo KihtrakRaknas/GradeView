@@ -21,7 +21,7 @@ app.get('/', async (req, res) => {
 	app.post('/', async (req, res) => {
 
 		const username = req.body.username;//'10012734'
-		const password = req.body.password; //'	'
+		const password = req.body.password; //'Sled%2#9'
 		console.log(req.body);
 		var obj //= await storage.getItem(username);
 		if(obj!=null){
@@ -92,6 +92,8 @@ async function checkUser(email,pass) {
     pass = encodeURIComponent(pass);
     var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
   
+    console.log(url2);
+
       const browser = await puppeteer.launch({
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
         /*
@@ -134,12 +136,14 @@ async function getData(email, pass) {
 	pass = encodeURIComponent(pass);
 var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
 
+  console.log(url2);
+
     const browser = await puppeteer.launch({
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      ///*
+      /*
         headless: false, // launch headful mode
         slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
-      //*/
+      */
       });
     const page = await browser.newPage();
 
