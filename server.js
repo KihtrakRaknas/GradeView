@@ -55,6 +55,7 @@ app.get('/', async (req, res) => {
 		const password = req.body.password; //'	'
     console.log(req.body);
     var signedIn = await checkUser(username,password)
+    console.log({valid: signedIn})
 			res.json({valid: signedIn})
 		  res.end();
     
@@ -88,11 +89,10 @@ function func(){
 }
 
 async function checkUser(email,pass) {
-    email = encodeURIComponent(email);
+    var email = encodeURIComponent(email);
     pass = encodeURIComponent(pass);
     var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
-  
-    console.log(url2);
+
 
       const browser = await puppeteer.launch({
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -121,9 +121,10 @@ async function checkUser(email,pass) {
   
       await page.goto(url, {waitUntil: 'networkidle2'});
       await page.goto(url2, {waitUntil: 'networkidle2'});
-  
-      var signedIn = !await $('.sectionTitle', await page.content()).text().trim() == "Invalid user name or password.  Please try again.";
-        
+
+      var signedIn = false;
+      if(await $('.sectionTitle', await page.content()).text().trim() != "Invalid user name or password.  Please try again.")
+        signedIn = true;
       await browser.close();
 
       return signedIn;
@@ -135,8 +136,6 @@ async function getData(email, pass) {
 	var email = encodeURIComponent(email);
 	pass = encodeURIComponent(pass);
 var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
-
-  console.log(url2);
 
     const browser = await puppeteer.launch({
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -166,7 +165,9 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
     await page.goto(url, {waitUntil: 'networkidle2'});
     await page.goto(url2, {waitUntil: 'networkidle2'});
 
-    var signedIn = !await $('.sectionTitle', await page.content()).text().trim() == "Invalid user name or password.  Please try again.";
+    var signedIn = false;
+    if(await $('.sectionTitle', await page.content()).text().trim() != "Invalid user name or password.  Please try again.")
+      signedIn = true;
     if(!signedIn){
       await browser.close();
       console.log("BAD user||pass")
