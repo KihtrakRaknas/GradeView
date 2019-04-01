@@ -16,8 +16,8 @@ var currentUsers=[];
 
 app.get('/', async (req, res) => {
 	//res.json({get:"gotten"})
-			const username = req.body.username;//'10012734'
-		const password = req.body.password; //'Sled%2#9'
+			const username = req.query("username");//'10012734'
+		const password = req.query("password"); //'Sled%2#9'
 		console.log(req.body);
 		var obj = await storage.getItem(username);
 		if(obj!=null){
