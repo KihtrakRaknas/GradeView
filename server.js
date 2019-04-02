@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const storage = require('node-persist');
 
 
-console.log(getData('10012734@sbstudents.org','Sled%2#9'));
+//console.log(getData('10012734@sbstudents.org','Sled%2#9'));
 
 
 storage.init( /* options ... */ );
@@ -169,10 +169,10 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
 
     const browser = await puppeteer.launch({
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      
+      /*
         headless: false, // launch headful mode
         slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
-      
+      */
       });
     const page = await browser.newPage();
 
