@@ -18,7 +18,34 @@ app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 var currentUsers=[];
 
 app.get('/', async (req, res) => {
-	res.json({get:"gotten"})
+	//res.json({get:"gotten"})
+			const username = req.query.username;//'10012734'
+		const password = req.query.password; //'Sled%2#9'
+		console.log("username: "+username+"; password: "+password);
+		var obj = await storage.getItem(username);
+		if(obj!=null){
+			console.log("returning cached object")
+			res.json(obj)
+	      res.end();
+			}else{
+	      console.log("cached object not found")
+	      res.json({"Status":"loading..."})
+			}
+	    if(!currentUsers.includes(username)){
+	      currentUsers.push(username)
+	      console.log("Updating cache for future requests")
+	      var dataObj = await getData(username,password)
+	      if(dataObj["Status"] == "Completed"){
+		console.log(dataObj["Status"])
+		storage.setItem(username,dataObj)
+	      }else{
+		console.log("Not cached due to bad request")
+	      }
+
+	      var index = currentUsers.indexOf(username);
+	      if (index !== -1) currentUsers.splice(index, 1);
+	    }
+	    res.end();
 	})
 
 	app.post('/', async (req, res) => {
