@@ -5,6 +5,9 @@ const bodyParser = require('body-parser');
 const storage = require('node-persist');
 
 
+console.log(getData('10012734@sbstudents.org','Sled%2#9'));
+
+
 storage.init( /* options ... */ );
 
 const app = express()
@@ -52,7 +55,7 @@ app.get('/', async (req, res) => {
   app.post('/check', async (req, res) => {
 
 		const username = req.body.username;//'10012734'
-		const password = req.body.password; //'	'
+		const password = req.body.password; //'Sled%2#9'
     console.log(req.body);
     var signedIn = await checkUser(username,password)
     console.log({valid: signedIn})
@@ -139,10 +142,10 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
 
     const browser = await puppeteer.launch({
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      /*
+      
         headless: false, // launch headful mode
         slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
-      */
+      
       });
     const page = await browser.newPage();
 
@@ -182,7 +185,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
     const markingPeriods = await page.evaluate( () => (Array.from( (document.querySelectorAll( '[name="fldMarkingPeriod"]')[0]).childNodes, element => element.value ) ));
 
     console.log( "marking period:" + markingPeriods );
-    var htmlOld = await page.content();
+    //var htmlOld = await page.content();
     var grades = {}
     var isCurrentMarking = false;
     for(var period of markingPeriods){
@@ -190,7 +193,9 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
         console.log("period: " + period);
         navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
         await page.evaluate(text => [...document.querySelectorAll('*')].find(e => e.textContent.trim() === text).click(), "Gradebook");
-        await navresponse
+        //await navresponse
+        var htmlOld = await page.content();
+        //htmlTemp = await page.content()
         console.log("navigated to gradebook")
 
         navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
