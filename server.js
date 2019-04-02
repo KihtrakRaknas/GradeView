@@ -19,33 +19,33 @@ var currentUsers=[];
 
 app.get('/', async (req, res) => {
 	//res.json({get:"gotten"})
-			const username = req.query.username;//'10012734'
-		const password = req.query.password; //'Sled%2#9'
-		console.log("username: "+username+"; password: "+password);
-		var obj = await storage.getItem(username);
-		if(obj!=null){
-			console.log("returning cached object")
-			res.json(obj)
-	      res.end();
-			}else{
-	      console.log("cached object not found")
-	      res.json({"Status":"loading..."})
-			}
-	    if(!currentUsers.includes(username)){
-	      currentUsers.push(username)
-	      console.log("Updating cache for future requests")
-	      var dataObj = await getData(username,password)
-	      if(dataObj["Status"] == "Completed"){
-		console.log(dataObj["Status"])
-		storage.setItem(username,dataObj)
-	      }else{
-		console.log("Not cached due to bad request")
-	      }
+  const username = req.query.username;//'10012734'
+  const password = req.query.password; //'Sled%2#9'
+  console.log("username: "+username+"; password: "+password);
+  var obj = await storage.getItem(username);
+  if(obj!=null){
+    console.log("returning cached object")
+    res.json(obj)
+      res.end();
+    }else{
+      console.log("cached object not found")
+      res.json({"Status":"loading..."})
+    }
+    if(!currentUsers.includes(username)){
+      currentUsers.push(username)
+      console.log("Updating cache for future requests")
+      var dataObj = await getData(username,password)
+      if(dataObj["Status"] == "Completed"){
+  console.log(dataObj["Status"])
+  storage.setItem(username,dataObj)
+      }else{
+  console.log("Not cached due to bad request")
+      }
 
-	      var index = currentUsers.indexOf(username);
-	      if (index !== -1) currentUsers.splice(index, 1);
-	    }
-	    res.end();
+      var index = currentUsers.indexOf(username);
+      if (index !== -1) currentUsers.splice(index, 1);
+    }
+    res.end();
 	})
 
 	app.post('/', async (req, res) => {
@@ -220,7 +220,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
         console.log("period: " + period);
         navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
         await page.evaluate(text => [...document.querySelectorAll('*')].find(e => e.textContent.trim() === text).click(), "Gradebook");
-        //await navresponse
+        await navresponse
         var htmlOld = await page.content();
         //htmlTemp = await page.content()
         console.log("navigated to gradebook")
