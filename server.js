@@ -19,7 +19,7 @@ var currentUsers=[];
 
 const admin = require('firebase-admin');
 
-var serviceAccount = require('path/to/serviceAccountKey.json');
+var serviceAccount = require('./secureContent/serviceKey.json');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
@@ -54,8 +54,8 @@ app.get('/', async (req, res) => {
     .catch(err => {
       console.log('Error getting document', err);
     });
- 
-    return updateGrades(username,password).then(() => {
+    
+    return updateGrades(username,password,userRef).then(() => {
         //res.end();
     }).catch(err => {
       console.log('Error updating grades', err);
@@ -145,7 +145,7 @@ app.get('/', async (req, res) => {
 
   })
 
-  async function updateGrades(username,password){
+  async function updateGrades(username,password,userRef){
     if(!currentUsers.includes(username)){
       currentUsers.push(username)
       console.log("Updating cache for future requests")
