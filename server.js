@@ -17,11 +17,50 @@ app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
 var currentUsers=[];
 
+const admin = require('firebase-admin');
+
+var serviceAccount = require('path/to/serviceAccountKey.json');
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+var db = admin.firestore();
+
 app.get('/', async (req, res) => {
 	//res.json({get:"gotten"})
   const username = req.query.username;//'10012734'
   const password = req.query.password; //'Sled%2#9'
   console.log("username: "+username+"; password: "+password);
+
+  var userRef = db.collection('users').doc(username);
+  
+  userRef.get()
+  .then(doc => {
+      if (!doc.exists) {
+        console.log('No such document!');
+
+        console.log("cached object not found")
+        res.json({"Status":"loading..."})
+
+      } else {
+        console.log('Document data:', doc.data());
+
+        console.log("returning cached object")
+        res.json(doc.data())
+      }
+
+    })
+    .catch(err => {
+      console.log('Error getting document', err);
+    });
+ 
+    return updateGrades(username,password).then(() => {
+        //res.end();
+    }).catch(err => {
+      console.log('Error updating grades', err);
+    })
+
   var obj = await storage.getItem(username);
   if(obj!=null){
     console.log("returning cached object")
@@ -36,10 +75,10 @@ app.get('/', async (req, res) => {
       console.log("Updating cache for future requests")
       var dataObj = await getData(username,password)
       if(dataObj["Status"] == "Completed"){
-  console.log(dataObj["Status"])
-  storage.setItem(username,dataObj)
+        console.log(dataObj["Status"])
+        storage.setItem(username,dataObj)
       }else{
-  console.log("Not cached due to bad request")
+        console.log("Not cached due to bad request")
       }
 
       var index = currentUsers.indexOf(username);
@@ -105,6 +144,25 @@ app.get('/', async (req, res) => {
       }
 
   })
+
+  async function updateGrades(username,password){
+    if(!currentUsers.includes(username)){
+      currentUsers.push(username)
+      console.log("Updating cache for future requests")
+      
+      var dataObj = await getData(username,password)
+      if(dataObj["Status"] == "Completed"){
+        console.log(dataObj["Status"])
+        userRef.set(dataObj);
+      }else{
+        console.log("Not cached due to bad request")
+      }
+  
+      var index = currentUsers.indexOf(username);
+      if (index !== -1) currentUsers.splice(index, 1);
+    }
+    return "done";  
+  }
 
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
