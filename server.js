@@ -91,7 +91,36 @@ app.get('/', async (req, res) => {
 
 		const username = req.body.username;//'10012734'
 		const password = req.body.password; //'Sled%2#9'
-		console.log(req.body);
+    console.log(req.body);
+    
+    var userRef = db.collection('users').doc(username);
+  
+    userRef.get()
+    .then(doc => {
+        if (!doc.exists) {
+          console.log('No such document!');
+  
+          console.log("cached object not found")
+          res.json({"Status":"loading..."})
+  
+        } else {
+          console.log('Document data:', doc.data());
+  
+          console.log("returning cached object")
+          res.json(doc.data())
+        }
+  
+      })
+      .catch(err => {
+        console.log('Error getting document', err);
+      });
+      
+      return updateGrades(username,password,userRef).then(() => {
+          //res.end();
+      }).catch(err => {
+        console.log('Error updating grades', err);
+      })
+      
 		var obj = await storage.getItem(username);
 		if(obj!=null){
 			console.log("returning cached object")
