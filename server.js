@@ -199,7 +199,7 @@ app.post('/addToken', async (req, res) => {
 	if(username&&token){
 		var userTokenRef = db.collection('userData').doc(username);
 		userTokenRef.update({
-			Tokens: firebase.firestore.FieldValue.arrayUnion(token)
+			Tokens: admin.firestore.FieldValue.arrayUnion(token)
 		}).then(function() {
 		    res.json({"Status":"Completed"})
 		})
