@@ -203,12 +203,14 @@ app.post('/addToken', async (req, res) => {
 				userTokenRef.set({
 					Tokens: admin.firestore.FieldValue.arrayUnion(token)
 				}).then(function() {
+					console.log(token + " added to " + username);
 				    res.json({"Status":"Completed"})
 				})
 			}else{
 				userTokenRef.update({
 					Tokens: admin.firestore.FieldValue.arrayUnion(token)
 				}).then(function() {
+					console.log(token + " added to " + username);
 				    res.json({"Status":"Completed"})
 				})
 			}
