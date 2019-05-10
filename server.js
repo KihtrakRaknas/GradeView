@@ -198,7 +198,7 @@ app.post('/addToken', async (req, res) => {
 	const token = req.body.token.value;
 	if(username&&token){
 		var userTokenRef = db.collection('userData').doc(username);
-		  userRef.get().then(doc => {
+		  userTokenRef.get().then(doc => {
 			if (!doc.exists) {
 				userTokenRef.set({
 					Tokens: admin.firestore.FieldValue.arrayUnion(token)
