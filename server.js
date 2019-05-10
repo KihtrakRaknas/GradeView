@@ -193,6 +193,22 @@ app.get('/', async (req, res) => {
     return "done";  
   }
 
+app.post('/addToken', async (req, res) => {
+	const username = req.body.user.username;
+	const token = req.body.token.value;
+	if(username&&token){
+		var userTokenRef = db.collection('userData').doc(username);
+		userTokenRef.update({
+			Tokens: firebase.firestore.FieldValue.arrayUnion(token)
+		}).then(function() {
+		    res.json({"Status":"Completed"})
+		})
+	}else{
+		res.json({"Status":"Missing params"})
+	}
+});
+
+
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 
