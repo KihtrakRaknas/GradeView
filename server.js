@@ -217,6 +217,7 @@ function func(){
 }
 
 async function checkUser(email,pass) {
+  if(!email.trim()||!pass.trim())
     var email = encodeURIComponent(email);
     pass = encodeURIComponent(pass);
     var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
