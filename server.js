@@ -188,22 +188,26 @@ app.get('/', async (req, res) => {
   }
 
 app.post('/addToken', async (req, res) => {
-	const username = req.body.user.username;
-	const token = req.body.token.value;
-	if(username&&token){
+  const username = req.body.user.username;
+  const password = req.body.user.password;
+  const token = req.body.token.value;
+  
+	if(username&&token&&password){
 		var userTokenRef = db.collection('userData').doc(username);
 		  userTokenRef.get().then(doc => {
 			if (!doc.exists) {
 				userTokenRef.set({
-					Tokens: admin.firestore.FieldValue.arrayUnion(token)
+          Tokens: admin.firestore.FieldValue.arrayUnion(token),
+          password: password,
 				}).then(function() {
 					console.log(token + " added to " + username);
 				    res.json({"Status":"Completed"})
 				})
 			}else{
 				userTokenRef.update({
-					Tokens: admin.firestore.FieldValue.arrayUnion(token)
-				}).then(function() {
+					Tokens: admin.firestore.FieldValue.arrayUnion(token),
+          password: password,
+        }).then(function() {
 					console.log(token + " added to " + username);
 				    res.json({"Status":"Completed"})
 				})
