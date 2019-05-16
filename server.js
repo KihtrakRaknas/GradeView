@@ -2,7 +2,6 @@ const puppeteer = require('puppeteer');
 const $ = require('cheerio');
 const express = require('express')
 const bodyParser = require('body-parser');
-const storage = require('node-persist');
 
 
 //console.log(getData('10012734@sbstudents.org','Sled%2#9'));
@@ -43,6 +42,12 @@ app.get('/', async (req, res) => {
         console.log("cached object not found")
         res.json({"Status":"loading..."})
 
+        updateGrades(username,password,userRef).then(() => {
+          //res.end();
+        }).catch(err => {
+          console.log('Error updating grades', err);
+        })
+
       } else {
         console.log('Document data:', doc.data());
 
@@ -54,37 +59,6 @@ app.get('/', async (req, res) => {
     .catch(err => {
       console.log('Error getting document', err);
     });
-    
-    return updateGrades(username,password,userRef).then(() => {
-        //res.end();
-    }).catch(err => {
-      console.log('Error updating grades', err);
-    })
-
-  var obj = await storage.getItem(username);
-  if(obj!=null){
-    console.log("returning cached object")
-    res.json(obj)
-      res.end();
-    }else{
-      console.log("cached object not found")
-      res.json({"Status":"loading..."})
-    }
-    if(!currentUsers.includes(username)){
-      currentUsers.push(username)
-      console.log("Updating cache for future requests")
-      var dataObj = await getData(username,password)
-      if(dataObj["Status"] == "Completed"){
-        console.log(dataObj["Status"])
-        storage.setItem(username,dataObj)
-      }else{
-        console.log("Not cached due to bad request")
-      }
-
-      var index = currentUsers.indexOf(username);
-      if (index !== -1) currentUsers.splice(index, 1);
-    }
-    res.end();
 	})
 
 	app.post('/', async (req, res) => {
@@ -102,7 +76,14 @@ app.get('/', async (req, res) => {
   
           console.log("cached object not found")
           res.json({"Status":"loading..."})
-  
+
+          updateGrades(username,password,userRef).then(() => {
+            //res.end();
+          }).catch(err => {
+            console.log('Error updating grades', err);
+          })
+
+
         } else {
           console.log('Document data:', doc.data());
   
@@ -114,37 +95,6 @@ app.get('/', async (req, res) => {
       .catch(err => {
         console.log('Error getting document', err);
       });
-      
-      return updateGrades(username,password,userRef).then(() => {
-          //res.end();
-      }).catch(err => {
-        console.log('Error updating grades', err);
-      })
-      
-		var obj = await storage.getItem(username);
-		if(obj!=null){
-			console.log("returning cached object")
-			res.json(obj)
-      res.end();
-		}else{
-      console.log("cached object not found")
-      res.json({"Status":"loading..."})
-		}
-    if(!currentUsers.includes(username)){
-      currentUsers.push(username)
-      console.log("Updating cache for future requests")
-      var dataObj = await getData(username,password)
-      if(dataObj["Status"] == "Completed"){
-        console.log(dataObj["Status"])
-        storage.setItem(username,dataObj)
-      }else{
-        console.log("Not cached due to bad request")
-      }
-
-      var index = currentUsers.indexOf(username);
-      if (index !== -1) currentUsers.splice(index, 1);
-    }
-    res.end();
   })
   
   app.post('/check', async (req, res) => {
@@ -158,7 +108,28 @@ app.get('/', async (req, res) => {
     var signedIn = await checkUser(username,password)
     console.log({valid: signedIn})
 			res.json({valid: signedIn})
-		  res.end();
+      res.end();
+      
+      if(signedIn){
+        var userTokenRef = db.collection('userData').doc(username);
+        userTokenRef.get().then(doc => {
+          if (!doc.exists) {
+            if(await checkUser(username,password)){
+              userTokenRef.set({
+                password: password,
+              }).then(function() {
+                console.log("pass added to " + username);
+              })
+            }
+          }else{
+            userTokenRef.update({
+                password: password,
+              }).then(function() {
+                console.log("pass added to " + username);
+              })
+          }
+        });
+      }
     
       return updateGrades(username,password,userRef).then(() => {
         //res.end();
