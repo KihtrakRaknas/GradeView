@@ -193,26 +193,30 @@ app.post('/addToken', async (req, res) => {
   const token = req.body.token.value;
   
 	if(username&&token&&password){
-		var userTokenRef = db.collection('userData').doc(username);
-		  userTokenRef.get().then(doc => {
-			if (!doc.exists) {
-				userTokenRef.set({
-          Tokens: admin.firestore.FieldValue.arrayUnion(token),
-          password: password,
-				}).then(function() {
-					console.log(token + " added to " + username);
-				    res.json({"Status":"Completed"})
-				})
-			}else{
-				userTokenRef.update({
-					Tokens: admin.firestore.FieldValue.arrayUnion(token),
-          password: password,
-        }).then(function() {
-					console.log(token + " added to " + username);
-				    res.json({"Status":"Completed"})
-				})
-			}
-		  });
+    if(await checkUser(username,password)){
+      var userTokenRef = db.collection('userData').doc(username);
+        userTokenRef.get().then(doc => {
+        if (!doc.exists) {
+          userTokenRef.set({
+            Tokens: admin.firestore.FieldValue.arrayUnion(token),
+            password: password,
+          }).then(function() {
+            console.log(token + " added to " + username);
+              res.json({"Status":"Completed"})
+          })
+        }else{
+          userTokenRef.update({
+            Tokens: admin.firestore.FieldValue.arrayUnion(token),
+            password: password,
+          }).then(function() {
+            console.log(token + " added to " + username);
+              res.json({"Status":"Completed"})
+          })
+        }
+        });
+      }else{
+        res.json({"Status":"Invalid User-Pass"})
+      }
 
 	}else{
 		res.json({"Status":"Missing params"})
