@@ -163,32 +163,11 @@ app.post('/addToken', async (req, res) => {
   
 	if(username&&token&&password){
       var userTokenRef = db.collection('userData').doc(username);
-        userTokenRef.get().then(doc => {
-        if (!doc.exists) {
-          var valid = await checkUser(username,password);
-          if(valid){
-            userTokenRef.set({
-              Tokens: admin.firestore.FieldValue.arrayUnion(token),
-              password: password,
-            }).then(function() {
-              console.log(token + " added to " + username);
-                res.json({"Status":"Completed"})
-            })
-          }
-        }else{
-          //No check needed if password matches stored password
-          if(doc.data()&&doc.data()[password]&&doc.data()[password]==password){
-            userTokenRef.update({
-              Tokens: admin.firestore.FieldValue.arrayUnion(token),
-              password: password,
-            }).then(function() {
-              console.log(token + " added to " + username);
-                res.json({"Status":"Completed"})
-            })
-          }else{
+        userTokenRef.get().then(async doc => {
+          if (!doc.exists) {
             var valid = await checkUser(username,password);
             if(valid){
-              userTokenRef.update({
+              userTokenRef.set({
                 Tokens: admin.firestore.FieldValue.arrayUnion(token),
                 password: password,
               }).then(function() {
@@ -196,8 +175,29 @@ app.post('/addToken', async (req, res) => {
                   res.json({"Status":"Completed"})
               })
             }
+          }else{
+            //No check needed if password matches stored password
+            if(doc.data()&&doc.data()[password]&&doc.data()[password]==password){
+              userTokenRef.update({
+                Tokens: admin.firestore.FieldValue.arrayUnion(token),
+                password: password,
+              }).then(function() {
+                console.log(token + " added to " + username);
+                  res.json({"Status":"Completed"})
+              })
+            }else{
+              var valid = await checkUser(username,password);
+              if(valid){
+                userTokenRef.update({
+                  Tokens: admin.firestore.FieldValue.arrayUnion(token),
+                  password: password,
+                }).then(function() {
+                  console.log(token + " added to " + username);
+                    res.json({"Status":"Completed"})
+                })
+              }
+            }
           }
-        }
         });
 
 	}else{
