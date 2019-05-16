@@ -7,8 +7,6 @@ const bodyParser = require('body-parser');
 //console.log(getData('10012734@sbstudents.org','Sled%2#9'));
 
 
-storage.init( /* options ... */ );
-
 const app = express()
 const port = process.env.PORT || 3000
 app.use(bodyParser.json());
