@@ -114,13 +114,11 @@ app.get('/', async (req, res) => {
         var userTokenRef = db.collection('userData').doc(username);
         userTokenRef.get().then(doc => {
           if (!doc.exists) {
-            if(await checkUser(username,password)){
               userTokenRef.set({
                 password: password,
               }).then(function() {
                 console.log("pass added to " + username);
               })
-            }
           }else{
             userTokenRef.update({
                 password: password,
@@ -167,7 +165,8 @@ app.post('/addToken', async (req, res) => {
       var userTokenRef = db.collection('userData').doc(username);
         userTokenRef.get().then(doc => {
         if (!doc.exists) {
-          if(await checkUser(username,password)){
+          var valid = await checkUser(username,password);
+          if(valid){
             userTokenRef.set({
               Tokens: admin.firestore.FieldValue.arrayUnion(token),
               password: password,
@@ -187,7 +186,8 @@ app.post('/addToken', async (req, res) => {
                 res.json({"Status":"Completed"})
             })
           }else{
-            if(await checkUser(username,password)){
+            var valid = await checkUser(username,password);
+            if(valid){
               userTokenRef.update({
                 Tokens: admin.firestore.FieldValue.arrayUnion(token),
                 password: password,
