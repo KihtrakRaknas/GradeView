@@ -150,27 +150,21 @@ app.get('/', async (req, res) => {
   app.post('/check', async (req, res) => {
 
 		const username = req.body.username;//'10012734'
-		const password = req.body.password; //'Sled%2#9'
+    const password = req.body.password; //'Sled%2#9'
+    
+    var userRef = db.collection('users').doc(username);
+
     console.log(req.body);
     var signedIn = await checkUser(username,password)
     console.log({valid: signedIn})
 			res.json({valid: signedIn})
 		  res.end();
     
-      if(!currentUsers.includes(username)){
-        currentUsers.push(username)
-        console.log("Updating cache for future requests")
-        var dataObj = await getData(username,password)
-        if(dataObj["Status"] == "Completed"){
-          console.log(dataObj["Status"])
-          storage.setItem(username,dataObj)
-        }else{
-          console.log("Not cached due to bad request")
-        }
-  
-        var index = currentUsers.indexOf(username);
-        if (index !== -1) currentUsers.splice(index, 1);
-      }
+      return updateGrades(username,password,userRef).then(() => {
+        //res.end();
+    }).catch(err => {
+      console.log('Error updating grades', err);
+    })
 
   })
 
