@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "gradeviewapp",
+  "private_key_id": "6b36b891c5828c60751b6bcbfe1d900ca7dfa838",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCkeQlrV/F7yWuH\njdzx7ATbduuKR6viwLtqen/wAS/TRpfmzFWWOeErFrBKQP4TRuyvWh6+6yMVZMfe\nfqF3xkZ4Om4vRKNhrrUfgdXGvfjX55VA3OsVwOTOQgmnuCfUiVmLTuLfF5jllZfd\nZ+phJsW6dOkDVn7Si/W7RibMh1thu63KRSZa1MTyJQxw/u8F4sHVTb4i4/FgxHf8\n211SerJpZkSDiKk5k2B58jaYuy5C0xA2c0j51j3ngQ03WhvbofV2rfPf27V/XwgC\nxJs3t050GBxy2ivTecDPlPrTsMyVa5nqWGIuTZszyhHyGwDZkoH8uTte1WtwKcHy\nvS/LdBT7AgMBAAECggEAKCdkpVBTJGWIWw/HYUi95tahqqDU1gc3ukct9OpVQr95\nVl+MhaCb2GkxoO89GHe4URcvamz9o7t3EFraEOPXUILzY5beTHravVZ1WpAGsK9Z\nQPyuaCEvuytkMA5Fqx3dPqWDvfOE4IglC2jTT+SnYV4phScYz05cL9xwnH5vUOyc\nZUBjaYKYhWl6oqMa5MlkKGPhK2gFIDnQvGb0q6CASk2uVXD7/9A835/lLSjXEJLb\nD/2FNBKt+z8BsaX0/5kTfiQN46uZkHMy5J8AbZpukKOcxlhxHMbqnPrnlOCy2I2S\nOOWDZYW9iyHuOQaH3DQB1NnJ5YJmjsXQCEMV5agMAQKBgQDgxytrsDj3S8f7XTBU\nGVUTKdwJAEV3qfCJsft9bWr9LUFHWPlodV8xs3/Ri34Gd4T4KqlRW65OpSE/KzD+\n8sNltaSz/OTXSOBSuZXfGGPm/HyWquYB/jRIzBTg2QuWKWZpaD03oS0YVJ+tj2sl\nT/jc2G7dYXMOSVyh81eXk/qZ/wKBgQC7UXzrJeeL/Fj4TrkkA4ZfBnOaREOWQRW1\nGuEjLnNbdkn4gh9bojdOxwKzsNrIquPsewL4309TY3JJLEtPgj6DGDYc8m2yPnuV\nKSb5XFYGhacVfmX2zjscTabwxD2qPe8ARtiqX+zACrGqnDX8xhURi0XHeRdrNnmw\nKA0MTQLtBQKBgQDfJTq45LAY6NV2eFPzGVb4+FRlZyyPmFigCd417XsKLnQgxXaM\nOgEwEReySf3po5uQ1qFSkGah0pMH5/PzFcPfZA1HVadFBicUWQMtAESlWkDBPpWq\notb68gdEFJTJFP6DZCVp5YskHVaL8dYXq6XOcNrW0dhr9W6NpEtvwktFtwKBgAmK\navxnH9YHclijWda1v0BTycuPsomSoxJoXhM2qHV+HuJjbklyh7KhfEe+uEYEPjur\nQEmAxj+PDyEe+m8ASULQFuF+j4vGlvDP+cY1p8QJRqtXlsXtVyFn6xrUQ/fJ08SF\n1z9GR364jLgN4MoRJL2SBGnWhxTU33nTcGax/XYpAoGAeZEOW6BzMVaK740p7/R3\nstmZZ7VUl70xDcUEzunBDAzp7kaHozGyncpMll9SSKWvBjp2vvImghwjr7aKKWmE\n0GBnMtyAoymBiAxGgfPH685Fzys8ZEPy87aniOtz/saH45hStEHNIAaiP4djljOm\njjzaMw3AOp86gmqz5ot9E0o=\n-----END PRIVATE KEY-----\n",
+  "client_email": "***REMOVED***",
+  "client_id": "***REMOVED***",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "***REMOVED***"
+}
