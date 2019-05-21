@@ -40,8 +40,122 @@ const browserPromise = puppeteer.launch({
     //slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
   */
   });
-  var browser;
-  browserPromise.then((brw) => {browser = brw});
+
+  browserPromise.then((browser) => {
+    app.get('/', async (req, res) => {
+      //res.json({get:"gotten"})
+      const username = req.query.username;//'10012734'
+      const password = req.query.password; //'Sled%2#9'
+      console.log("username: "+username+"; password: "+password);
+    
+      var userRef = db.collection('users').doc(username);
+      
+      userRef.get()
+      .then(doc => {
+          if (!doc.exists) {
+            console.log('No such document!');
+    
+            console.log("cached object not found")
+            res.json({"Status":"loading..."})
+    
+            updateGrades(username,password,userRef).then(() => {
+              //res.end();
+            }).catch(err => {
+              console.log('Error updating grades', err);
+            })
+    
+          } else {
+            console.log('Document data:', doc.data());
+    
+            console.log("returning cached object")
+            res.json(doc.data())
+          }
+    
+        })
+        .catch(err => {
+          console.log('Error getting document', err);
+        });
+      })
+    
+      app.post('/', async (req, res) => {
+    
+        const username = req.body.username;//'10012734'
+        const password = req.body.password; //'Sled%2#9'
+        console.log(req.body);
+        
+        var userRef = db.collection('users').doc(username);
+      
+        userRef.get()
+        .then(doc => {
+            if (!doc.exists) {
+              console.log('No such document!');
+      
+              console.log("cached object not found")
+              res.json({"Status":"loading..."})
+    
+              updateGrades(username,password,userRef).then(() => {
+                //res.end();
+              }).catch(err => {
+                console.log('Error updating grades', err);
+              })
+    
+    
+            } else {
+              console.log('Document data:', doc.data());
+      
+              console.log("returning cached object")
+              res.json(doc.data())
+            }
+      
+          })
+          .catch(err => {
+            console.log('Error getting document', err);
+          });
+      })
+      
+      app.post('/check', async (req, res) => {
+    
+        const username = req.body.username;//'10012734'
+        const password = req.body.password; //'Sled%2#9'
+        
+        var userRef = db.collection('users').doc(username);
+    
+        console.log(req.body);
+        var signedIn = await checkUser(username,password)
+        console.log({valid: signedIn})
+          res.json({valid: signedIn})
+          res.end();
+          
+          if(signedIn){
+            var userTokenRef = db.collection('userData').doc(username);
+            userTokenRef.get().then(doc => {
+              if (!doc.exists) {
+                  userTokenRef.set({
+                    password: password,
+                  }).then(function() {
+                    console.log("pass added to " + username);
+                  })
+              }else{
+                userTokenRef.update({
+                    password: password,
+                  }).then(function() {
+                    console.log("pass added to " + username);
+                  })
+              }
+            });
+          }else{
+            return null;
+          }
+        
+          return updateGrades(username,password,userRef).then(() => {
+            //res.end();
+        }).catch(err => {
+          console.log('Error updating grades', err);
+        })
+    
+      })
+
+  });
 
 app.get('/', async (req, res) => {
 	//res.json({get:"gotten"})
