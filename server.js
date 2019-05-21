@@ -24,139 +24,118 @@ admin.initializeApp({
 
 var db = admin.firestore();
 
+app.get('/', async (req, res) => {
+	//res.json({get:"gotten"})
+  const username = req.query.username;//'10012734'
+  const password = req.query.password; //'Sled%2#9'
+  console.log("username: "+username+"; password: "+password);
 
-const browserPromise = puppeteer.launch({
-  args: [
-    '--no-sandbox',
-    '--disable-setuid-sandbox',
-    '--disable-dev-shm-usage',
-    '--disable-accelerated-2d-canvas',
-    '--disable-gpu',
-    '--window-size=1920x1080',
-  ],
-  /*
-    headless: false, // launch headful mode
-    //slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
-  */
-  });
-var browser;
-  browserPromise.then((brow) => {
-    browser = brow;
-    app.get('/', async (req, res) => {
-      //res.json({get:"gotten"})
-      const username = req.query.username;//'10012734'
-      const password = req.query.password; //'Sled%2#9'
-      console.log("username: "+username+"; password: "+password);
-    
-      var userRef = db.collection('users').doc(username);
-      
-      userRef.get()
-      .then(doc => {
-          if (!doc.exists) {
-            console.log('No such document!');
-    
-            console.log("cached object not found")
-            res.json({"Status":"loading..."})
-    
-            updateGrades(username,password,userRef).then(() => {
-              //res.end();
-            }).catch(err => {
-              console.log('Error updating grades', err);
-            })
-    
-          } else {
-            console.log('Document data:', doc.data());
-    
-            console.log("returning cached object")
-            res.json(doc.data())
-          }
-    
-        })
-        .catch(err => {
-          console.log('Error getting document', err);
-        });
-      })
-    
-      app.post('/', async (req, res) => {
-    
-        const username = req.body.username;//'10012734'
-        const password = req.body.password; //'Sled%2#9'
-        console.log(req.body);
-        
-        var userRef = db.collection('users').doc(username);
-      
-        userRef.get()
-        .then(doc => {
-            if (!doc.exists) {
-              console.log('No such document!');
-      
-              console.log("cached object not found")
-              res.json({"Status":"loading..."})
-    
-              updateGrades(username,password,userRef).then(() => {
-                //res.end();
-              }).catch(err => {
-                console.log('Error updating grades', err);
-              })
-    
-    
-            } else {
-              console.log('Document data:', doc.data());
-      
-              console.log("returning cached object")
-              res.json(doc.data())
-            }
-      
-          })
-          .catch(err => {
-            console.log('Error getting document', err);
-          });
-      })
-      
-      app.post('/check', async (req, res) => {
-    
-        const username = req.body.username;//'10012734'
-        const password = req.body.password; //'Sled%2#9'
-        
-        var userRef = db.collection('users').doc(username);
-    
-        console.log(req.body);
-        var signedIn = await checkUser(username,password)
-        console.log({valid: signedIn})
-          res.json({valid: signedIn})
-          res.end();
-          
-          if(signedIn){
-            var userTokenRef = db.collection('userData').doc(username);
-            userTokenRef.get().then(doc => {
-              if (!doc.exists) {
-                  userTokenRef.set({
-                    password: password,
-                  }).then(function() {
-                    console.log("pass added to " + username);
-                  })
-              }else{
-                userTokenRef.update({
-                    password: password,
-                  }).then(function() {
-                    console.log("pass added to " + username);
-                  })
-              }
-            });
-          }else{
-            return null;
-          }
-        
-          return updateGrades(username,password,userRef).then(() => {
-            //res.end();
+  var userRef = db.collection('users').doc(username);
+  
+  userRef.get()
+  .then(doc => {
+      if (!doc.exists) {
+        console.log('No such document!');
+
+        console.log("cached object not found")
+        res.json({"Status":"loading..."})
+
+        updateGrades(username,password,userRef).then(() => {
+          //res.end();
         }).catch(err => {
           console.log('Error updating grades', err);
         })
+
+      } else {
+        console.log('Document data:', doc.data());
+
+        console.log("returning cached object")
+        res.json(doc.data())
+      }
+
+    })
+    .catch(err => {
+      console.log('Error getting document', err);
+    });
+	})
+
+	app.post('/', async (req, res) => {
+
+		const username = req.body.username;//'10012734'
+		const password = req.body.password; //'Sled%2#9'
+    console.log(req.body);
     
+    var userRef = db.collection('users').doc(username);
+  
+    userRef.get()
+    .then(doc => {
+        if (!doc.exists) {
+          console.log('No such document!');
+  
+          console.log("cached object not found")
+          res.json({"Status":"loading..."})
+
+          updateGrades(username,password,userRef).then(() => {
+            //res.end();
+          }).catch(err => {
+            console.log('Error updating grades', err);
+          })
+
+
+        } else {
+          console.log('Document data:', doc.data());
+  
+          console.log("returning cached object")
+          res.json(doc.data())
+        }
+  
       })
+      .catch(err => {
+        console.log('Error getting document', err);
+      });
+  })
+  
+  app.post('/check', async (req, res) => {
 
-  });
+		const username = req.body.username;//'10012734'
+    const password = req.body.password; //'Sled%2#9'
+    
+    var userRef = db.collection('users').doc(username);
 
+    console.log(req.body);
+    var signedIn = await checkUser(username,password)
+    console.log({valid: signedIn})
+			res.json({valid: signedIn})
+      res.end();
+      
+      if(signedIn){
+        var userTokenRef = db.collection('userData').doc(username);
+        userTokenRef.get().then(doc => {
+          if (!doc.exists) {
+              userTokenRef.set({
+                password: password,
+              }).then(function() {
+                console.log("pass added to " + username);
+              })
+          }else{
+            userTokenRef.update({
+                password: password,
+              }).then(function() {
+                console.log("pass added to " + username);
+              })
+          }
+        });
+      }else{
+        return null;
+      }
+    
+      return updateGrades(username,password,userRef).then(() => {
+        //res.end();
+    }).catch(err => {
+      console.log('Error updating grades', err);
+    })
+
+  })
 
   async function updateGrades(username,password,userRef){
     if(!currentUsers.includes(username)){
@@ -247,7 +226,21 @@ async function checkUser(email,pass) {
     pass = encodeURIComponent(pass);
     var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
 
-    await browser
+
+      const browser = await puppeteer.launch({
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--disable-gpu',
+          '--window-size=1920x1080',
+        ],
+        /*
+          headless: false, // launch headful mode
+          slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
+        */
+        });
       const page = await browser.newPage();
   
       /*await page.setViewport({
@@ -307,6 +300,7 @@ async function checkUser(email,pass) {
       var signedIn = false;
       if(await $('.sectionTitle', await page.content()).text().trim() != "Invalid user name or password.  Please try again.")
         signedIn = true;
+      await browser.close();
 
       return signedIn;
 
@@ -345,7 +339,21 @@ async function getData(email, pass) {
 	var email = encodeURIComponent(email);
 	pass = encodeURIComponent(pass);
 var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
-    await browser
+
+    const browser = await puppeteer.launch({
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu',
+        '--window-size=1920x1080',
+      ],
+      /*
+        headless: false, // launch headful mode
+        //slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
+      */
+      });
     const page = await browser.newPage();
 
 
@@ -402,6 +410,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
     if(await $('.sectionTitle', await page.content()).text().trim() != "Invalid user name or password.  Please try again.")
       signedIn = true;
     if(!signedIn){
+      await browser.close();
       console.log("BAD user||pass")
       return {Status:"Invalid"};
     }
@@ -448,5 +457,6 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
   }
   grades["Status"] = "Completed";
   console.log("Grades gotten for: "+email)
+  await browser.close();
     return grades;
   }
