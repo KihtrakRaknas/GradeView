@@ -452,6 +452,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
             if(!grades[ClassName][indivMarkingPeriod])
               grades[ClassName][indivMarkingPeriod] = {}
             grades[ClassName][indivMarkingPeriod]["Assignments"] = await scrapeMP(page);
+            grades[ClassName][defaultMP]["avg"] = await page.evaluate(()=>document.getElementsByTagName("b")[0].innerText.replace(/\s+/g, '').replace(/[^\d.%-]/g,''))
         }
       }
     }
