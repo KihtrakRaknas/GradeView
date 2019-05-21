@@ -458,6 +458,6 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
   }
   grades["Status"] = "Completed";
   console.log("Grades gotten for: "+email)
+  await browser.close();
     return grades;
-    await browser.close();
   }
