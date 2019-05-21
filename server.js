@@ -438,7 +438,8 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
       if(!grades[ClassName][defaultMP])
         grades[ClassName][defaultMP] = {}
       grades[ClassName][defaultMP]["Assignments"] = await scrapeMP(page);
-      console.log(grades[ClassName][defaultMP]["Assignments"])
+      grades[ClassName][defaultMP]["avg"] = await page.evaluate(()=>document.getElementsByTagName("b")[0].innerText.replace(/\s+/g, '').replace(/[^\d.%-]/g,''))
+      console.log(ClassName)
       for(var indivMarkingPeriod of markingPeriods){
         if(indivMarkingPeriod){
             await page.evaluate((indivMP) => {
@@ -457,6 +458,6 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
   }
   grades["Status"] = "Completed";
   console.log("Grades gotten for: "+email)
-  await browser.close();
     return grades;
+    await browser.close();
   }
