@@ -290,6 +290,7 @@ async function scrapeMP(page){
   return list;
 }
 
+
 async function getData(email, pass) {
   var grades = {};
 
@@ -298,7 +299,15 @@ async function getData(email, pass) {
 var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
 
     const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu',
+        '--window-size=1920x1080',
+      ],
+      headless: false
       /*
         headless: false, // launch headful mode
         //slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
@@ -306,20 +315,51 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
       });
     const page = await browser.newPage();
 
-    /*await page.setViewport({
-	    width: 1920,
-	    height: 1080
-	})*/
 
     await page.setRequestInterception(true);
+    const blockedResourceTypes = [
+      'image',
+      'media',
+      'font',
+      'texttrack',
+      'object',
+      'beacon',
+      'csp_report',
+      'imageset',
+      'stylesheet',
+    ];
 
+    const skippedResources = [
+      'quantserve',
+      'adzerk',
+      'doubleclick',
+      'adition',
+      'exelator',
+      'sharethrough',
+      'cdn.api.twitter',
+      'google-analytics',
+      'googletagmanager',
+      'google',
+      'fontawesome',
+      'facebook',
+      'analytics',
+      'optimizely',
+      'clicktale',
+      'mixpanel',
+      'zedo',
+      'clicksor',
+      'tiqcdn',
+    ];
     page.on('request', (req) => {
-        if(req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() === 'image' || req.resourceType() === 'media'){
-            req.abort();
-        }
-        else {
-            req.continue();
-        }
+      const requestUrl = req._url.split('?')[0].split('#')[0];
+      if (
+        blockedResourceTypes.indexOf(req.resourceType()) !== -1 ||
+        skippedResources.some(resource => requestUrl.indexOf(resource) !== -1)
+      ) {
+        req.abort();
+      } else {
+        req.continue();
+    }
 	});
 
     await page.goto(url, {waitUntil: 'domcontentloaded'});
