@@ -436,7 +436,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
       if(!grades[ClassName][defaultMP])
         grades[ClassName][defaultMP] = {}
       grades[ClassName][defaultMP]["Assignments"] = await scrapeMP(page);
-      grades[ClassName][defaultMP]["avg"] = await page.evaluate(()=>document.getElementsByTagName("b")[0].innerText.replace(/\s+/g, '').replace(/[^\d.%-]/g,''))
+      grades[ClassName][defaultMP]["avg"] = await page.evaluate(()=>document.getElementsByTagName("b")[0].innerText.replace(/\s+/g, '').replace(/[^\d.%]/g,''))
       console.log(ClassName)
       for(var indivMarkingPeriod of markingPeriods){
         if(indivMarkingPeriod){
@@ -450,7 +450,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
             if(!grades[ClassName][indivMarkingPeriod])
               grades[ClassName][indivMarkingPeriod] = {}
             grades[ClassName][indivMarkingPeriod]["Assignments"] = await scrapeMP(page);
-            grades[ClassName][indivMarkingPeriod]["avg"] = await page.evaluate(()=>document.getElementsByTagName("b")[0].innerText.replace(/\s+/g, '').replace(/[^\d.%-]/g,''))
+            grades[ClassName][indivMarkingPeriod]["avg"] = await page.evaluate(()=>document.getElementsByTagName("b")[0].innerText.replace(/\s+/g, '').replace(/[^\d.%]/g,''))
         }
       }
     }
