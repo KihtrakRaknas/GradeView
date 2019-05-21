@@ -245,7 +245,7 @@ async function checkUser(email,pass) {
     pass = encodeURIComponent(pass);
     var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
 
-
+    await browser
       const page = await browser.newPage();
   
       /*await page.setViewport({
