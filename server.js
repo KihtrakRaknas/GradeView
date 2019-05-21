@@ -265,7 +265,34 @@ async function checkUser(email,pass) {
       
 }
 
+async function scrapeMP(page){
+  var list = await page.evaluate(() => {
+    var assignments = [];
+    for(var node of document.getElementsByClassName("list")[0].childNodes[1].childNodes){
+
+      if(node.classList && !node.classList.contains("listheading")&&node.childNodes.length>=11){
+        var assignData={};
+
+        //console.log(node.childNodes);
+        //console.log(node.childNodes[3].innerText);
+          assignData["Date"] = node.childNodes[3].innerText;
+        //console.log(node.childNodes[7].innerText);
+        assignData["Category"] = node.childNodes[7].innerText
+        //console.log(node.childNodes[9].innerText);
+        assignData["Name"] = node.childNodes[9].innerText;
+        //console.log(node.childNodes[11].childNodes[0].textContent.replace(/\s/g,''));
+        assignData["Grade"] = node.childNodes[11].childNodes[0].textContent.replace(/\s/g,'')
+        assignments.push(assignData);
+        }
+    }
+    return assignments;
+  });
+  return list;
+}
+
 async function getData(email, pass) {
+  var grades = {};
+
 	var email = encodeURIComponent(email);
 	pass = encodeURIComponent(pass);
 var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
@@ -274,7 +301,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
       /*
         headless: false, // launch headful mode
-        slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
+        //slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
       */
       });
     const page = await browser.newPage();
@@ -295,8 +322,8 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
         }
 	});
 
-    await page.goto(url, {waitUntil: 'networkidle2'});
-    await page.goto(url2, {waitUntil: 'networkidle2'});
+    await page.goto(url, {waitUntil: 'domcontentloaded'});
+    await page.goto(url2, {waitUntil: 'domcontentloaded'});
 
     var signedIn = false;
     if(await $('.sectionTitle', await page.content()).text().trim() != "Invalid user name or password.  Please try again.")
@@ -307,176 +334,48 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
       return {Status:"Invalid"};
     }
 
-	console.log(signedIn);
-
     await page.evaluate(text => [...document.querySelectorAll('*')].find(e => e.textContent.trim() === text).click(), "Gradebook");
-	await page.waitForNavigation({ waitUntil: 'networkidle2' })
+	await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
+  await page.evaluate(text => [...document.querySelectorAll('*')].find(e => e.textContent.trim() === text).click(), "Course Summary");
+  await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
 
-    const markingPeriods = await page.evaluate( () => (Array.from( (document.querySelectorAll( '[name="fldMarkingPeriod"]')[0]).childNodes, element => element.value ) ));
+  const classes = await page.evaluate( () => (Array.from( (document.getElementById("fldCourse")).childNodes, element => element.value ) ));
 
-    console.log( "marking period:" + markingPeriods );
-    //var htmlOld = await page.content();
-    var grades = {}
-    var isCurrentMarking = false;
-    for(var period of markingPeriods){
-      if(period!=null){
-        console.log("period: " + period);
-        navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
-        await page.evaluate(text => [...document.querySelectorAll('*')].find(e => e.textContent.trim() === text).click(), "Gradebook");
-        await navresponse
-        var htmlOld = await page.content();
-        //htmlTemp = await page.content()
-        console.log("navigated to gradebook")
+  for(var indivClass of classes){
+    if(indivClass){
+      //indivClass
+      await page.evaluate((classID) => changeCourse(classID),indivClass);
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
+      const markingPeriods = await page.evaluate( () => (Array.from( (document.getElementById("fldSwitchMP")).childNodes, element => element.value ) ));
+      const defaultMP = await page.evaluate(()=>document.getElementById("fldSwitchMP").value);
+      markingPeriods.splice(markingPeriods.indexOf(defaultMP), 1);
 
-        navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
-        const currentMarking = await page.evaluate( () => ((document.querySelectorAll( '[name="fldMarkingPeriod"]')[0]).value));
-		var htmlTemp;
-        if(currentMarking!=period){
-			console.log("switchSTART")
-          await page.evaluate((markingPeriod) => switchMarkingPeriod(markingPeriod),period);
-          console.log("switch")
-          await navresponse
-          	var htmlTemp = await page.content();
-        	console.log("HTML1");
-          isCurrentMarking = false;
-        }else{
-			htmlTemp = htmlOld;
-      console.log("tempDone");
-      isCurrentMarking = true;
-		}
+      const ClassName = await page.evaluate((classID)=>document.querySelectorAll('[value="'+classID+'"]')[0].innerText,indivClass);
+      if(!grades[ClassName])
+        grades[ClassName] = {}
+      grades[ClassName]["teacher"] = await page.evaluate(()=>document.getElementsByClassName("list")[0].childNodes[1].childNodes[4].childNodes[5].innerText)
+      if(!grades[ClassName][defaultMP])
+        grades[ClassName][defaultMP] = {}
+      grades[ClassName][defaultMP]["Assignments"] = await scrapeMP(page);
+      console.log(grades[ClassName][defaultMP]["Assignments"])
+      for(var indivMarkingPeriod of markingPeriods){
+        if(indivMarkingPeriod){
+            await page.evaluate((indivMP) => {
+              document.getElementById("fldSwitchMP").value = indivMP;
+              displayMPs();
+              document.getElementsByTagName("BUTTON")[1].click()//"Switch Marking Period btn"
+            },indivMarkingPeriod);
+            await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
 
-    const html = htmlTemp;
-		//console.log(html);
-
-        //await page.screenshot({path: period+'examples.png'});
-        var title
-        await $('.list', html).find("tbody").find(".categorytab").each(function() {
-          const className = $(this).text().trim();
-            console.log("ClassName: "+className);
-            if(!grades[className])
-              grades[className] = {}
-            var teacherName = $(this).parent().parent().find(".cellLeft").eq(1).text().trim();
-            teacherName=teacherName.substring(0,teacherName.indexOf("\n"));
-            console.log("Teacher Name: "+teacherName);
-            if(!grades[className]["teacher"])
-              grades[className]["teacher"]=teacherName;
-
-
-              //var avg = $(this).parent().parent().find($("td[title='View Course Summary']")).textContent;
-              var avg = $(this).parent().parent().find(".cellRight").eq(0).text().trim();
-              avg=avg.substring(0,avg.indexOf("\n"));
-              console.log("Average"+avg);
-            if(!grades[className][period])
-              grades[className][period]={}
-            grades[className][period]["avg"]=avg;
-            grades[className]["title"]= $(this).prop('title');
-
-
-        });
-        console.log("done");
-        if(!isCurrentMarking)
-          var html2 = await page.content();
-        for(var classs in grades){
-          console.log("Getting grades for: "+grades[classs]["title"]);
-
-          navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
-
-          try{
-              await page.evaluate((text) => document.querySelector("span[title='"+text+"']").click(),grades[classs]["title"]);
-                    //var res = page.click("span[title='"+grades[classs]["title"]+"']");
-          }catch(e){
-            console.log("Err: "+e)
-          }
-
-          console.log("res")
-          //await res;
-          await navresponse;
-          console.log("response")
-
-          var list = await page.evaluate(() => {
-            var assignments = [];
-            for(var node of document.getElementsByClassName("list")[0].childNodes[1].childNodes){
-
-              if(node.classList && !node.classList.contains("listheading")&&node.childNodes.length>=11){
-                var assignData={};
-
-                //console.log(node.childNodes);
-                //console.log(node.childNodes[3].innerText);
-                  assignData["Date"] = node.childNodes[3].innerText;
-                //console.log(node.childNodes[7].innerText);
-                assignData["Category"] = node.childNodes[7].innerText
-                //console.log(node.childNodes[9].innerText);
-                assignData["Name"] = node.childNodes[9].innerText;
-                //console.log(node.childNodes[11].childNodes[0].textContent.replace(/\s/g,''));
-                assignData["Grade"] = node.childNodes[11].childNodes[0].textContent.replace(/\s/g,'')
-                assignments.push(assignData);
-                }
-            }
-            return assignments;
-          });
-          grades[classs][period]["Assignments"] = list;
-          //console.log(grades[classs][period]["Assignments"]);
-
-
-          //await page.screenshot({path: classs+'examples.png'});
-          console.log("Going to grade book");
-          navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
-          await page.evaluate(text => [...document.querySelectorAll('*')].find(e => e.textContent.trim() === text).click(), "Gradebook");
-          await navresponse;
-          //await page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);//page.waitForNavigation({ waitUntil: 'networkidle2' })
-          if(!isCurrentMarking){
-            console.log("Slecting marking");
-
-            navresponse = page.waitForNavigation(['networkidle0', 'load', 'domcontentloaded']);
-
-            await page.evaluate((markingPeriod) => switchMarkingPeriod(markingPeriod),period);
-            //await page.waitForNavigation({ waitUntil: 'networkidle2' })
-            await navresponse;
-            //console.log(navresponse)
-            //await page.screenshot({path: 'examples.png'});
-          }
-
+            if(!grades[ClassName][indivMarkingPeriod])
+              grades[ClassName][indivMarkingPeriod] = {}
+            grades[ClassName][indivMarkingPeriod]["Assignments"] = await scrapeMP(page);
         }
-        htmlOld = html2;
-
       }
     }
-
-    grades["Status"] = "Completed";
-	console.log("Function done")
-    //console.log(grades);
-
-
-
-    await browser.close();
-
-    return grades;
-
   }
-
-
-/*puppeteer
-  .launch()
-  .then(function(browser){
-    return browser.newPage();
-  })
-  .then(function(page) {
-    return page.goto().then(function() {
-        return page.goto(url2).then(function() {
-            //page.find(".headerCategoryTabSelected").click();
-            page.evaluate(text => [...document.querySelectorAll('*')].find(e => e.textContent.trim() === text).click(), "Gradebook")
-            //console.log(page.content())
-            page.waitForNavigation({ waitUntil: 'networkidle0' })
-
-            return page.content();
-        });
-    });
-  })
-  .then(function(html) {
-    //console.log(html);
-    page.screenshot({path: 'examples.png'});
-
-  })
-  .catch(function(err) {
-    //handle error
-  });*/
+  grades["Status"] = "Completed";
+  console.log("Grades gotten for: "+email)
+    return grades;
+    await browser.close();
+  }
