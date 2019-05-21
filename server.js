@@ -99,8 +99,6 @@ app.get('/', async (req, res) => {
 
 		const username = req.body.username;//'10012734'
     const password = req.body.password; //'Sled%2#9'
-    
-    var userRef = db.collection('users').doc(username);
 
     console.log(req.body);
     var signedIn = await checkUser(username,password)
@@ -128,7 +126,7 @@ app.get('/', async (req, res) => {
       }else{
         return null;
       }
-    
+      var userRef = db.collection('users').doc(username);
       return updateGrades(username,password,userRef).then(() => {
         //res.end();
     }).catch(err => {
