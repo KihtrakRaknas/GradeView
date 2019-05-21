@@ -24,6 +24,25 @@ admin.initializeApp({
 
 var db = admin.firestore();
 
+
+const browserPromise = puppeteer.launch({
+  args: [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-accelerated-2d-canvas',
+    '--disable-gpu',
+    '--window-size=1920x1080',
+  ],
+  headless: false
+  /*
+    headless: false, // launch headful mode
+    //slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
+  */
+  });
+  var browser;
+  browserPromise.then((brw) => {browser = brw});
+
 app.get('/', async (req, res) => {
 	//res.json({get:"gotten"})
   const username = req.query.username;//'10012734'
@@ -227,13 +246,6 @@ async function checkUser(email,pass) {
     var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
 
 
-      const browser = await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        /*
-          headless: false, // launch headful mode
-          slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
-        */
-        });
       const page = await browser.newPage();
   
       /*await page.setViewport({
@@ -242,23 +254,57 @@ async function checkUser(email,pass) {
     })*/
   
       await page.setRequestInterception(true);
+      const blockedResourceTypes = [
+        'image',
+        'media',
+        'font',
+        'texttrack',
+        'object',
+        'beacon',
+        'csp_report',
+        'imageset',
+        'stylesheet',
+      ];
   
+      const skippedResources = [
+        'quantserve',
+        'adzerk',
+        'doubleclick',
+        'adition',
+        'exelator',
+        'sharethrough',
+        'cdn.api.twitter',
+        'google-analytics',
+        'googletagmanager',
+        'google',
+        'fontawesome',
+        'facebook',
+        'analytics',
+        'optimizely',
+        'clicktale',
+        'mixpanel',
+        'zedo',
+        'clicksor',
+        'tiqcdn',
+      ];
       page.on('request', (req) => {
-          if(req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() === 'image' || req.resourceType() === 'media'){
-              req.abort();
-          }
-          else {
-              req.continue();
-          }
+        const requestUrl = req._url.split('?')[0].split('#')[0];
+        if (
+          blockedResourceTypes.indexOf(req.resourceType()) !== -1 ||
+          skippedResources.some(resource => requestUrl.indexOf(resource) !== -1)
+        ) {
+          req.abort();
+        } else {
+          req.continue();
+      }
     });
   
-      await page.goto(url, {waitUntil: 'networkidle2'});
-      await page.goto(url2, {waitUntil: 'networkidle2'});
+      await page.goto(url, {waitUntil: 'domcontentloaded'});
+      await page.goto(url2, {waitUntil: 'domcontentloaded'});
 
       var signedIn = false;
       if(await $('.sectionTitle', await page.content()).text().trim() != "Invalid user name or password.  Please try again.")
         signedIn = true;
-      await browser.close();
 
       return signedIn;
 
@@ -297,22 +343,7 @@ async function getData(email, pass) {
 	var email = encodeURIComponent(email);
 	pass = encodeURIComponent(pass);
 var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
-
-    const browser = await puppeteer.launch({
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--disable-gpu',
-        '--window-size=1920x1080',
-      ],
-      headless: false
-      /*
-        headless: false, // launch headful mode
-        //slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
-      */
-      });
+    await browser
     const page = await browser.newPage();
 
 
@@ -369,7 +400,6 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
     if(await $('.sectionTitle', await page.content()).text().trim() != "Invalid user name or password.  Please try again.")
       signedIn = true;
     if(!signedIn){
-      await browser.close();
       console.log("BAD user||pass")
       return {Status:"Invalid"};
     }
@@ -417,5 +447,4 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
   grades["Status"] = "Completed";
   console.log("Grades gotten for: "+email)
     return grades;
-    await browser.close();
   }
