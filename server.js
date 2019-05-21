@@ -34,7 +34,6 @@ const browserPromise = puppeteer.launch({
     '--disable-gpu',
     '--window-size=1920x1080',
   ],
-  headless: false
   /*
     headless: false, // launch headful mode
     //slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
