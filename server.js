@@ -350,7 +350,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
       ],
       /*
         headless: false, // launch headful mode
-        //slowMo: 250, // slow down puppeteer script so that it's easier to follow visually
+        slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
       */
       });
     const page = await browser.newPage();
@@ -414,10 +414,14 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
       return {Status:"Invalid"};
     }
 
-    await page.evaluate(text => [...document.querySelectorAll('*')].find(e => e.textContent.trim() === text).click(), "Gradebook");
-	await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
-  await page.evaluate(text => [...document.querySelectorAll('*')].find(e => e.textContent.trim() === text).click(), "Course Summary");
-  await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
+    const url3 = "https://students.sbschools.org/genesis/parents?tab1=studentdata&tab2=gradebook&tab3=coursesummary&action=form&studentid="+email.split("%40")[0];
+    await page.goto(url3, {waitUntil: 'domcontentloaded'});
+    
+
+    //await page.evaluate(text => [...document.querySelectorAll('*')].find(e => e.textContent.trim() === text).click(), "Gradebook");
+	//await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
+  //await page.evaluate(text => [...document.querySelectorAll('*')].find(e => e.textContent.trim() === text).click(), "Course Summary");
+  //await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
 
   const classes = await page.evaluate( () => (Array.from( (document.getElementById("fldCourse")).childNodes, element => element.value ) ));
 
@@ -458,6 +462,6 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
   }
   grades["Status"] = "Completed";
   console.log("Grades gotten for: "+email)
-  await browser.close();
+    await browser.close();
     return grades;
   }
