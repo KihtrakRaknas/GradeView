@@ -136,6 +136,7 @@ app.get('/', async (req, res) => {
   })
 
   async function updateGrades(username,password,userRef){
+    console.log(currentUsers)
     if(!currentUsers.includes(username)){
       currentUsers.push(username)
       console.log("Updating cache for future requests")
