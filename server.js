@@ -349,8 +349,8 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
         '--window-size=1920x1080',
       ],
       /*
-        headless: false, // launch headful mode
-        slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
+        //headless: false, // launch headful mode
+        //slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
       */
       });
     const page = await browser.newPage();
@@ -437,7 +437,15 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
       const ClassName = await page.evaluate((classID)=>document.querySelectorAll('[value="'+classID+'"]')[0].innerText,indivClass);
       if(!grades[ClassName])
         grades[ClassName] = {}
-      grades[ClassName]["teacher"] = await page.evaluate(()=>document.getElementsByClassName("list")[0].childNodes[1].childNodes[4].childNodes[5].innerText)
+		
+		  grades[ClassName]["teacher"] = await page.evaluate(()=>{
+			  let list = document.getElementsByClassName("list")[0].childNodes[1].childNodes[4].childNodes[5];
+			  if(list)
+			 	 return list.innerText
+				else
+				  return null;
+		  });
+		
       if(!grades[ClassName][defaultMP])
         grades[ClassName][defaultMP] = {}
       grades[ClassName][defaultMP]["Assignments"] = await scrapeMP(page);
@@ -445,23 +453,41 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
       console.log(ClassName)
       for(var indivMarkingPeriod of markingPeriods){
         if(indivMarkingPeriod){
+			
+          if(!grades[ClassName]["teacher"]){
+              grades[ClassName]["teacher"] = await page.evaluate(()=>{
+              let list = document.getElementsByClassName("list")[0].childNodes[1].childNodes[4].childNodes[5];
+              if(list)
+              return list.innerText
+              else
+                return null;
+            });
+          }
+			
             await page.evaluate((indivMP) => {
+				
               document.getElementById("fldSwitchMP").value = indivMP;
               displayMPs();
               document.getElementsByTagName("BUTTON")[1].click()//"Switch Marking Period btn"
             },indivMarkingPeriod);
             await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
-
+			
+			console.log("MP switch")
+			
             if(!grades[ClassName][indivMarkingPeriod])
               grades[ClassName][indivMarkingPeriod] = {}
+			console.log("Scraping page")
             grades[ClassName][indivMarkingPeriod]["Assignments"] = await scrapeMP(page);
+			  console.log("Getting avg")
             grades[ClassName][indivMarkingPeriod]["avg"] = await page.evaluate(()=>document.getElementsByTagName("b")[0].innerText.replace(/\s+/g, '').replace(/[^\d.%]/g,''))
+			  console.log("Done")
         }
       }
     }
   }
   grades["Status"] = "Completed";
   console.log("Grades gotten for: "+email)
+  console.log(grades)
     await browser.close();
     return grades;
   }
