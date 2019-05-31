@@ -126,7 +126,7 @@ app.get('/', async (req, res) => {
       }else{
         return null;
       }
-      var userRef = db.collection('users').doc(username);    
+      var userRef = db.collection('users').doc(username);
       return updateGrades(username,password,userRef).then(() => {
         //res.end();
     }).catch(err => {
