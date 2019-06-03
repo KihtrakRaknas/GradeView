@@ -2,7 +2,7 @@ const puppeteer = require('puppeteer');
 const $ = require('cheerio');
 const express = require('express')
 const bodyParser = require('body-parser');
-import weightingObj from ('./classWeightingOutput.json')
+const weightingObj = require('./classWeightingOutput.json')
 
 //console.log(getData('10012734@sbstudents.org','Sled%2#9'));
 
