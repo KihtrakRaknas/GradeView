@@ -786,10 +786,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
           await page.goto(url3, {waitUntil: 'domcontentloaded'});
           
           let classGrades = await scrapeCurrentClassGrades(page)
-
-          for(var yr in classGrades){
-            var yrData = classGrades[yr]
-            for(var classIndex in yrData){
+            for(var classIndex in classGrades){
               for(var className in weightingObj){
                 if(classGrades[yr][classIndex]["Name"].replace(new RegExp("Advanced Placement", 'g'), 'AP').replace(new RegExp(" ", 'g'), '').replace(new RegExp("-", 'g'), '').toLowerCase() == className.replace(new RegExp("Advanced Placement", 'g'), 'AP').replace(new RegExp(" ", 'g'), '').replace(new RegExp("-", 'g'), '').toLowerCase()){
                   classGrades[yr][classIndex]["Weight"] = weightingObj[className];
@@ -803,7 +800,6 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
                 })
               }
             }
-          }
 
         console.log("Grades gotten for: "+email)
         console.log(classGrades)
