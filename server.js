@@ -675,17 +675,20 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
               assignData["ME"] = node.childNodes[13].innerText.trim()
               assignData["MP3"] = node.childNodes[17].innerText.trim()
               assignData["MP4"] = node.childNodes[19].innerText.trim()
-          
-          if(!assignData["MP1"])
-            delete assignData["MP1"]
-          if(!assignData["MP2"])
-            delete assignData["MP2"]
-          if(!assignData["ME"])
-            delete assignData["ME"]
-          if(!assignData["MP3"])
-            delete assignData["MP3"]
-          if(!assignData["MP4"])
-            delete assignData["MP4"]
+              assignData["FE"] = node.childNodes[21].innerText.trim()
+		
+              if(!assignData["MP1"])
+                delete assignData["MP1"]
+              if(!assignData["MP2"])
+                delete assignData["MP2"]
+              if(!assignData["ME"])
+                delete assignData["ME"]
+              if(!assignData["MP3"])
+                delete assignData["MP3"]
+              if(!assignData["MP4"])
+                delete assignData["MP4"]
+              if(!assignData["FE"])
+                delete assignData["FE"]
               
               assignData["Name"] = node.childNodes[1].innerText;
               assignments.push(assignData);
