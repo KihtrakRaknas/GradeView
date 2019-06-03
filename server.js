@@ -628,12 +628,18 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
         for(var yr in classGrades){
           var yrData = classGrades[yr]
           for(var classIndex in yrData){
+            for(var className in weightingObj){
+              if(classGrades[yr][classIndex]["Name"].replace("Advanced Placement","AP").replace(" ","").replace("-","") == className.replace("Advanced Placement","AP").replace(" ","").replace("-","")){
+
+                break;
+              }
+            }
             if(classGrades[yr][classIndex]["Name"]&&weightingObj[classGrades[yr][classIndex]["Name"]])
             classGrades[yr][classIndex]["Weight"]=weightingObj[classGrades[yr][classIndex]["Name"]];
           }
         }
       console.log("Grades gotten for: "+email)
       console.log(classGrades)
+      await browser.close();
         return classGrades
-        await browser.close();
       }
