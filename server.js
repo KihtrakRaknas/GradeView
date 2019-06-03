@@ -788,15 +788,15 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
           let classGrades = await scrapeCurrentClassGrades(page)
             for(var classIndex in classGrades){
               for(var className in weightingObj){
-                if(classGrades[yr][classIndex]["Name"].replace(new RegExp("Advanced Placement", 'g'), 'AP').replace(new RegExp(" ", 'g'), '').replace(new RegExp("-", 'g'), '').toLowerCase() == className.replace(new RegExp("Advanced Placement", 'g'), 'AP').replace(new RegExp(" ", 'g'), '').replace(new RegExp("-", 'g'), '').toLowerCase()){
-                  classGrades[yr][classIndex]["Weight"] = weightingObj[className];
+                if(classGrades[classIndex]["Name"].replace(new RegExp("Advanced Placement", 'g'), 'AP').replace(new RegExp(" ", 'g'), '').replace(new RegExp("-", 'g'), '').toLowerCase() == className.replace(new RegExp("Advanced Placement", 'g'), 'AP').replace(new RegExp(" ", 'g'), '').replace(new RegExp("-", 'g'), '').toLowerCase()){
+                  classGrades[classIndex]["Weight"] = weightingObj[className];
                   break;
                 }
               }
-              if(!classGrades[yr][classIndex]["Weight"]){
+              if(!classGrades[classIndex]["Weight"]){
                 //console.log("ERR"+classGrades[yr][classIndex]["Name"]+"not found!")
                 db.collection('errors').doc("Unknown Classes").update({
-                  err: admin.firestore.FieldValue.arrayUnion(classGrades[yr][classIndex]["Name"]),
+                  err: admin.firestore.FieldValue.arrayUnion(classGrades[classIndex]["Name"]),
                 })
               }
             }
