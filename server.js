@@ -634,8 +634,12 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
                 break;
               }
             }
-            if(!classGrades[yr][classIndex]["Weight"])
-              console.log("ERR"+classGrades[yr][classIndex]["Name"]+"not found!")
+            if(!classGrades[yr][classIndex]["Weight"]){
+              //console.log("ERR"+classGrades[yr][classIndex]["Name"]+"not found!")
+              db.collection('errors').doc("Unknown Classes").set({
+                err: admin.firestore.FieldValue.arrayUnion(classGrades[yr][classIndex]["Name"]),
+              })
+            }
           }
         }
       console.log("Grades gotten for: "+email)
