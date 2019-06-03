@@ -629,7 +629,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
           var yrData = classGrades[yr]
           for(var classIndex in yrData){
             for(var className in weightingObj){
-              if(classGrades[yr][classIndex]["Name"].replace("Advanced Placement","AP").replace(" ","").replace("-","") == className.replace("Advanced Placement","AP").replace(" ","").replace("-","")){
+              if(classGrades[yr][classIndex]["Name"].replace(new RegExp("Advanced Placement", 'g'), 'AP').replace(new RegExp(" ", 'g'), '').replace(new RegExp("-", 'g'), '') == className.replace(new RegExp("Advanced Placement", 'g'), 'AP').replace(new RegExp(" ", 'g'), '').replace(new RegExp("-", 'g'), '')){
                 classGrades[yr][classIndex]["Weight"] = weightingObj[className];
                 break;
               }
