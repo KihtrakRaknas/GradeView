@@ -639,7 +639,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
           for(var classIndex in yrData){
             for(var className in weightingObj){
               console.log(classGrades[classIndex]["Name"])
-              if(classGrades[classIndex]["Name"].replace(new RegExp("Advanced Placement", 'g'), 'AP').replace(new RegExp(" and ", 'g'), '').replace(new RegExp(" ", 'g'), '').replace(new RegExp("-", 'g'), '').replace(new RegExp("/", 'g'), '').replace(new RegExp("&", 'g'), '').toLowerCase() == className.replace(new RegExp("Advanced Placement", 'g'), 'AP').replace(new RegExp(" and ", 'g'), '').replace(new RegExp(" ", 'g'), '').replace(new RegExp("-", 'g'), '').replace(new RegExp("/", 'g'), '').replace(new RegExp("&", 'g'), '').toLowerCase()){
+              if(classGrades[yr][classIndex]["Name"].replace(new RegExp("Advanced Placement", 'g'), 'AP').replace(new RegExp(" and ", 'g'), '').replace(new RegExp(" ", 'g'), '').replace(new RegExp("-", 'g'), '').replace(new RegExp("/", 'g'), '').replace(new RegExp("&", 'g'), '').toLowerCase() == className.replace(new RegExp("Advanced Placement", 'g'), 'AP').replace(new RegExp(" and ", 'g'), '').replace(new RegExp(" ", 'g'), '').replace(new RegExp("-", 'g'), '').replace(new RegExp("/", 'g'), '').replace(new RegExp("&", 'g'), '').toLowerCase()){
                 classGrades[yr][classIndex]["Weight"] = weightingObj[className];
                 break;
               }
