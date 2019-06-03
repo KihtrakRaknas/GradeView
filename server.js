@@ -2,7 +2,7 @@ const puppeteer = require('puppeteer');
 const $ = require('cheerio');
 const express = require('express')
 const bodyParser = require('body-parser');
-
+import weightingObj from ('./classWeightingOutput.json')
 
 //console.log(getData('10012734@sbstudents.org','Sled%2#9'));
 
@@ -624,6 +624,14 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
         await page.goto(url3, {waitUntil: 'domcontentloaded'});
         
         let classGrades = await scrapeClassGrades(page)
+
+        for(var yr in classGrades){
+          var yrData = classGrades[yr]
+          for(var classIndex in yrData){
+            if(classGrades[yr][classIndex]["Name"]&&weightingObj[classGrades[yr][classIndex]["Name"]])
+            classGrades[yr][classIndex]["Weight"]=weightingObj[classGrades[yr][classIndex]["Name"]];
+          }
+        }
       console.log("Grades gotten for: "+email)
       console.log(classGrades)
         return classGrades
