@@ -638,7 +638,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
           var yrData = classGrades[yr]
           for(var classIndex in yrData){
             for(var className in weightingObj){
-              console.log(classGrades[classIndex]["Name"])
+              //console.log(classGrades[yr][classIndex])
               if(classGrades[yr][classIndex]["Name"].replace(new RegExp("Advanced Placement", 'g'), 'AP').replace(new RegExp(" and ", 'g'), '').replace(new RegExp(" ", 'g'), '').replace(new RegExp("-", 'g'), '').replace(new RegExp("/", 'g'), '').replace(new RegExp("&", 'g'), '').toLowerCase() == className.replace(new RegExp("Advanced Placement", 'g'), 'AP').replace(new RegExp(" and ", 'g'), '').replace(new RegExp(" ", 'g'), '').replace(new RegExp("-", 'g'), '').replace(new RegExp("/", 'g'), '').replace(new RegExp("&", 'g'), '').toLowerCase()){
                 classGrades[yr][classIndex]["Weight"] = weightingObj[className];
                 break;
