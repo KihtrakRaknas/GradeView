@@ -3,6 +3,21 @@ const $ = require('cheerio');
 const express = require('express')
 const bodyParser = require('body-parser');
 const weightingObj = require('./classWeightingOutput.json')
+const Fuse = require('fuse.js')
+
+var options = {
+  shouldSort: true,
+  includeScore: true,
+  threshold: 0.6,
+  location: 0,
+  distance: 100,
+  maxPatternLength: 100,
+  minMatchCharLength: 2,
+  keys: [
+    "Name"
+  ]
+};
+var fuse = new Fuse(weightingObj, options);
 
 //console.log(getData('10012734@sbstudents.org','Sled%2#9'));
 
@@ -516,6 +531,49 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
 
     //GPA
 
+    function cleanStr(str){
+      return str
+      .toLowerCase()
+      .replace(new RegExp("advanced placement", 'g'), 'AP')
+      .replace(new RegExp(" and ", 'g'), '')
+      .replace(new RegExp(" ", 'g'), '')
+      .replace(new RegExp("-", 'g'), '')
+      .replace(new RegExp("/", 'g'), '')
+      .replace(new RegExp("&", 'g'), '')
+    }
+
+    function cleanStrForFuzzy(str){
+      if(str.indexOf(" ") != -1 && str.substring(0,str.indexOf(" ")) == "AP")
+        str = "advanced placement"+str.substring(str.indexOf(" "))
+
+      return str
+      .toLowerCase()
+      .replace(new RegExp("-", 'g'), ' ')
+      .replace(new RegExp("/", 'g'), ' ')
+      .replace(new RegExp("&", 'g'), 'and')
+    }
+
+//classGrades[classIndex]["Name"]
+
+    function findWeight(search) {
+      for(var className of weightingObj){
+        //console.log(classGrades[yr][classIndex])
+        if(cleanStr(search) == cleanStr(className["Name"])){
+          return className["Weight"];
+        }
+      }
+
+      var result = fuse.search(cleanStrForFuzzy(search));
+      if(result[0]&&result[0]["item"]){
+        db.collection('errors').doc("Unknown Classes").update({
+          err: admin.firestore.FieldValue.arrayUnion("search: "+search+"; res: "+result[0]["item"]["Name"]),
+        })
+        return result[0]["item"]["Weight"]
+      }
+        
+
+    }
+
 
     async function scrapeClassGrades(page){
       var list = await page.evaluate(() => {
@@ -637,13 +695,8 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
         for(var yr in classGrades){
           var yrData = classGrades[yr]
           for(var classIndex in yrData){
-            for(var className in weightingObj){
-              //console.log(classGrades[yr][classIndex])
-              if(classGrades[yr][classIndex]["Name"].replace(new RegExp("Advanced Placement", 'g'), 'AP').replace(new RegExp(" and ", 'g'), '').replace(new RegExp(" ", 'g'), '').replace(new RegExp("-", 'g'), '').replace(new RegExp("/", 'g'), '').replace(new RegExp("&", 'g'), '').toLowerCase() == className.replace(new RegExp("Advanced Placement", 'g'), 'AP').replace(new RegExp(" and ", 'g'), '').replace(new RegExp(" ", 'g'), '').replace(new RegExp("-", 'g'), '').replace(new RegExp("/", 'g'), '').replace(new RegExp("&", 'g'), '').toLowerCase()){
-                classGrades[yr][classIndex]["Weight"] = weightingObj[className];
-                break;
-              }
-            }
+            if(findWeight(classGrades[yr][classIndex]["Name"]))
+              classGrades[yr][classIndex]["Weight"] = findWeight(classGrades[yr][classIndex]["Name"])
             if(!classGrades[yr][classIndex]["Weight"]){
               //console.log("ERR"+classGrades[yr][classIndex]["Name"]+"not found!")
               db.collection('errors').doc("Unknown Classes").update({
@@ -788,12 +841,8 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
           
           let classGrades = await scrapeCurrentClassGrades(page)
             for(var classIndex in classGrades){
-              for(var className in weightingObj){
-                if(classGrades[classIndex]["Name"].replace(new RegExp("Advanced Placement", 'g'), 'AP').replace(new RegExp(" and ", 'g'), '').replace(new RegExp(" ", 'g'), '').replace(new RegExp("-", 'g'), '').replace(new RegExp("/", 'g'), '').replace(new RegExp("&", 'g'), '').toLowerCase() == className.replace(new RegExp("Advanced Placement", 'g'), 'AP').replace(new RegExp(" and ", 'g'), '').replace(new RegExp(" ", 'g'), '').replace(new RegExp("-", 'g'), '').replace(new RegExp("/", 'g'), '').replace(new RegExp("&", 'g'), '').toLowerCase()){
-                  classGrades[classIndex]["Weight"] = weightingObj[className];
-                  break;
-                }
-              }
+              if(findWeight(classGrades[classIndex]["Name"]))
+                classGrades[classIndex]["Weight"] = findWeight(classGrades[classIndex]["Name"])
               if(!classGrades[classIndex]["Weight"]){
                 //console.log("ERR"+classGrades[yr][classIndex]["Name"]+"not found!")
                 db.collection('errors').doc("Unknown Classes").update({
