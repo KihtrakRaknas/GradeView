@@ -565,7 +565,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
 
       var result = fuse.search(cleanStrForFuzzy(search));
       if(result[0]&&result[0]["item"]){
-        db.collection('errors').doc("Unknown Classes").update({
+        db.collection('errors').doc("Fuzzy Search Results").update({
           err: admin.firestore.FieldValue.arrayUnion("search: "+search+"; res: "+result[0]["item"]["Name"]),
         })
         return result[0]["item"]["Weight"]
