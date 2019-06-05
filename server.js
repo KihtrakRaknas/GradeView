@@ -570,6 +570,8 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
         })
         return result[0]["item"]["Weight"]
       }
+
+      return null;
         
 
     }
