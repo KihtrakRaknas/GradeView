@@ -534,13 +534,13 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
     function cleanStr(str){
       return str
       .toLowerCase()
-      .replace(new RegExp("advanced placement", 'g'), 'AP')
+      .replace(new RegExp("advanced placement", 'g'), 'ap')
       .replace(new RegExp(" and ", 'g'), '')
       .replace(new RegExp(" ", 'g'), '')
       .replace(new RegExp("-", 'g'), '')
       .replace(new RegExp("/", 'g'), '')
       .replace(new RegExp("&", 'g'), '')
-    }
+    } 
 
     function cleanStrForFuzzy(str){
       if(str.indexOf(" ") != -1 && str.substring(0,str.indexOf(" ")) == "AP")
