@@ -2,7 +2,22 @@ const puppeteer = require('puppeteer');
 const $ = require('cheerio');
 const express = require('express')
 const bodyParser = require('body-parser');
+const weightingObj = require('./classWeightingOutput.json')
+const Fuse = require('fuse.js')
 
+var options = {
+  shouldSort: true,
+  includeScore: true,
+  threshold: 0.6,
+  location: 0,
+  distance: 100,
+  maxPatternLength: 100,
+  minMatchCharLength: 2,
+  keys: [
+    "Name"
+  ]
+};
+var fuse = new Fuse(weightingObj, options);
 
 //console.log(getData('10012734@sbstudents.org','Sled%2#9'));
 
@@ -141,6 +156,15 @@ app.get('/', async (req, res) => {
     const password = req.body.password; //'Sled%2#9'
 
     return res.json(await getClassGrades(username,password));
+
+  })
+
+  app.post('/newGrades', async (req, res) => {
+
+		const username = req.body.username;//'10012734'
+    const password = req.body.password; //'Sled%2#9'
+
+    return res.json(await getCurrentClassGrades(username,password));
 
   })
 
@@ -507,6 +531,51 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
 
     //GPA
 
+    function cleanStr(str){
+      return str
+      .toLowerCase()
+      .replace(new RegExp("advanced placement", 'g'), 'ap')
+      .replace(new RegExp(" and ", 'g'), '')
+      .replace(new RegExp(" ", 'g'), '')
+      .replace(new RegExp("-", 'g'), '')
+      .replace(new RegExp("/", 'g'), '')
+      .replace(new RegExp("&", 'g'), '')
+    } 
+
+    function cleanStrForFuzzy(str){
+      if(str.indexOf(" ") != -1 && str.substring(0,str.indexOf(" ")) == "AP")
+        str = "advanced placement"+str.substring(str.indexOf(" "))
+
+      return str
+      .toLowerCase()
+      .replace(new RegExp("-", 'g'), ' ')
+      .replace(new RegExp("/", 'g'), ' ')
+      .replace(new RegExp("&", 'g'), 'and')
+    }
+
+//classGrades[classIndex]["Name"]
+
+    function findWeight(search) {
+      for(var className of weightingObj){
+        //console.log(classGrades[yr][classIndex])
+        if(cleanStr(search) == cleanStr(className["Name"])){
+          return className["Weight"];
+        }
+      }
+
+      var result = fuse.search(cleanStrForFuzzy(search));
+      if(result[0]&&result[0]["item"]){
+        db.collection('errors').doc("Fuzzy Search Results").update({
+          err: admin.firestore.FieldValue.arrayUnion("search: "+search+"; res: "+result[0]["item"]["Name"]),
+        })
+        return result[0]["item"]["Weight"]
+      }
+
+      return null;
+        
+
+    }
+
 
     async function scrapeClassGrades(page){
       var list = await page.evaluate(() => {
@@ -624,8 +693,168 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
         await page.goto(url3, {waitUntil: 'domcontentloaded'});
         
         let classGrades = await scrapeClassGrades(page)
+
+        for(var yr in classGrades){
+          var yrData = classGrades[yr]
+          for(var classIndex in yrData){
+            if(findWeight(classGrades[yr][classIndex]["Name"]))
+              classGrades[yr][classIndex]["Weight"] = findWeight(classGrades[yr][classIndex]["Name"])
+            if(!classGrades[yr][classIndex]["Weight"]){
+              //console.log("ERR"+classGrades[yr][classIndex]["Name"]+"not found!")
+              db.collection('errors').doc("Unknown Classes").update({
+                err: admin.firestore.FieldValue.arrayUnion(classGrades[yr][classIndex]["Name"]),
+              })
+            }
+          }
+        }
       console.log("Grades gotten for: "+email)
       console.log(classGrades)
+      await browser.close();
         return classGrades
-        await browser.close();
       }
+
+      async function scrapeCurrentClassGrades(page){
+        var list = await page.evaluate(() => {
+          var assignments = [];
+          for(var node of document.getElementsByClassName("list")[0].childNodes[1].childNodes){
+      
+            if(node.classList && !node.classList.contains("listheading")&&node.childNodes.length>=15){
+              var assignData={};
+          if(!Number(node.childNodes[25].innerText))
+            continue;
+          assignData["Credits"] = Number(node.childNodes[25].innerText)
+              //console.log(node.childNodes);
+              //console.log(node.childNodes[3].innerText);
+          console.log(node.childNodes)
+              assignData["MP1"] = node.childNodes[9].innerText.trim()
+              assignData["MP2"] = node.childNodes[11].innerText.trim()
+              assignData["ME"] = node.childNodes[13].innerText.trim()
+              assignData["MP3"] = node.childNodes[17].innerText.trim()
+              assignData["MP4"] = node.childNodes[19].innerText.trim()
+              assignData["FE"] = node.childNodes[21].innerText.trim()
+		
+              if(!assignData["MP1"])
+                delete assignData["MP1"]
+              if(!assignData["MP2"])
+                delete assignData["MP2"]
+              if(!assignData["ME"])
+                delete assignData["ME"]
+              if(!assignData["MP3"])
+                delete assignData["MP3"]
+              if(!assignData["MP4"])
+                delete assignData["MP4"]
+              if(!assignData["FE"])
+                delete assignData["FE"]
+              
+              assignData["Name"] = node.childNodes[1].innerText;
+              assignments.push(assignData);
+              }
+          }
+          return assignments;
+        });
+        return list;
+      }
+      
+      
+      async function getCurrentClassGrades(email, pass) {
+        var grades = {};
+      
+        var email = encodeURIComponent(email);
+        pass = encodeURIComponent(pass);
+      var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
+      
+          const browser = await puppeteer.launch({
+            args: [
+              '--no-sandbox',
+              '--disable-setuid-sandbox',
+              '--disable-dev-shm-usage',
+              '--disable-accelerated-2d-canvas',
+              '--disable-gpu',
+              '--window-size=1920x1080',
+            ],
+            /*
+              //headless: false, // launch headful mode
+              //slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
+            */
+            });
+          const page = await browser.newPage();
+      
+      
+          await page.setRequestInterception(true);
+          const blockedResourceTypes = [
+            'image',
+            'media',
+            'font',
+            'texttrack',
+            'object',
+            'beacon',
+            'csp_report',
+            'imageset',
+            'stylesheet',
+          ];
+      
+          const skippedResources = [
+            'quantserve',
+            'adzerk',
+            'doubleclick',
+            'adition',
+            'exelator',
+            'sharethrough',
+            'cdn.api.twitter',
+            'google-analytics',
+            'googletagmanager',
+            'google',
+            'fontawesome',
+            'facebook',
+            'analytics',
+            'optimizely',
+            'clicktale',
+            'mixpanel',
+            'zedo',
+            'clicksor',
+            'tiqcdn',
+          ];
+          page.on('request', (req) => {
+            const requestUrl = req._url.split('?')[0].split('#')[0];
+            if (
+              blockedResourceTypes.indexOf(req.resourceType()) !== -1 ||
+              skippedResources.some(resource => requestUrl.indexOf(resource) !== -1)
+            ) {
+              req.abort();
+            } else {
+              req.continue();
+          }
+        });
+      
+          await page.goto(url, {waitUntil: 'domcontentloaded'});
+          await page.goto(url2, {waitUntil: 'domcontentloaded'});
+      
+          var signedIn = false;
+          if(await $('.sectionTitle', await page.content()).text().trim() != "Invalid user name or password.  Please try again.")
+            signedIn = true;
+          if(!signedIn){
+            await browser.close();
+            console.log("BAD user||pass")
+            return {Status:"Invalid"};
+          }
+      
+          const url3 = "https://students.sbschools.org/genesis/parents?tab1=studentdata&tab2=grading&tab3=current&action=form&studentid="+email.split("%40")[0];
+          await page.goto(url3, {waitUntil: 'domcontentloaded'});
+          
+          let classGrades = await scrapeCurrentClassGrades(page)
+            for(var classIndex in classGrades){
+              if(findWeight(classGrades[classIndex]["Name"]))
+                classGrades[classIndex]["Weight"] = findWeight(classGrades[classIndex]["Name"])
+              if(!classGrades[classIndex]["Weight"]){
+                //console.log("ERR"+classGrades[yr][classIndex]["Name"]+"not found!")
+                db.collection('errors').doc("Unknown Classes").update({
+                  err: admin.firestore.FieldValue.arrayUnion(classGrades[classIndex]["Name"]),
+                })
+              }
+            }
+
+        console.log("Grades gotten for: "+email)
+        console.log(classGrades)
+        await browser.close();
+          return classGrades
+        }

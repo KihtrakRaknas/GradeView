@@ -8,6 +8,7 @@
     "cheerio": "^1.0.0-rc.2",
     "express": "^4.16.4",
     "firebase-admin": "^7.3.0",
+    "fuse.js": "^3.4.5",
     "node-persist": "^3.0.4",
     "nodemon": "^1.18.10",
     "puppeteer": "^1.14.0"
