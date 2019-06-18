@@ -220,8 +220,6 @@ app.post('/addToken', async (req, res) => {
             if(doc.data()&&((doc.data()["password"]&&doc.data()["password"]==password)||(doc.data()["passwordEncrypted"]&&key.decrypt(doc.data()["passwordEncrypted"], 'utf8')==password))){
               userTokenRef.update({
                 Tokens: admin.firestore.FieldValue.arrayUnion(token),
-                //password: password,
-                passwordEncrypted: key.encrypt(password, 'base64')
               }).then(function() {
                 console.log(token + " added to " + username);
                   res.json({"Status":"Completed"})
