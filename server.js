@@ -4,6 +4,11 @@ const express = require('express')
 const bodyParser = require('body-parser');
 const weightingObj = require('./classWeightingOutput.json')
 const Fuse = require('fuse.js')
+const NodeRSA = require('node-rsa');
+const key = new NodeRSA({b: 512});
+const keysObj = require('./secureContent/keys')
+key.importKey(keysObj.public, 'pkcs1-public-pem');
+key.importKey(keysObj.private, 'pkcs1-private-pem');
 
 var options = {
   shouldSort: true,
@@ -126,7 +131,8 @@ app.get('/', async (req, res) => {
         userTokenRef.get().then(doc => {
           if (!doc.exists) {
               userTokenRef.set({
-                password: password,
+                //password: password,
+                passwordEncrypted: key.encrypt(password, 'base64')
               }).then(function() {
                 console.log("pass added to " + username);
               })
@@ -201,7 +207,8 @@ app.post('/addToken', async (req, res) => {
             if(valid){
               userTokenRef.set({
                 Tokens: admin.firestore.FieldValue.arrayUnion(token),
-                password: password,
+                //password: password,
+                passwordEncrypted: key.encrypt(password, 'base64')
               }).then(function() {
                 console.log(token + " added to " + username);
                   res.json({"Status":"Completed"})
@@ -209,10 +216,11 @@ app.post('/addToken', async (req, res) => {
             }
           }else{
             //No check needed if password matches stored password
-            if(doc.data()&&doc.data()[password]&&doc.data()[password]==password){
+            if(doc.data()&&((doc.data()["password"]&&doc.data()["password"]==password)||(doc.data()["passwordEncrypted"]&&key.decrypt(doc.data()["passwordEncrypted"], 'utf8')==password))){
               userTokenRef.update({
                 Tokens: admin.firestore.FieldValue.arrayUnion(token),
-                password: password,
+                //password: password,
+                passwordEncrypted: key.encrypt(password, 'base64')
               }).then(function() {
                 console.log(token + " added to " + username);
                   res.json({"Status":"Completed"})
@@ -222,7 +230,8 @@ app.post('/addToken', async (req, res) => {
               if(valid){
                 userTokenRef.update({
                   Tokens: admin.firestore.FieldValue.arrayUnion(token),
-                  password: password,
+                  //password: password,
+                  passwordEncrypted: key.encrypt(password, 'base64')
                 }).then(function() {
                   console.log(token + " added to " + username);
                     res.json({"Status":"Completed"})
