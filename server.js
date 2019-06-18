@@ -138,7 +138,8 @@ app.get('/', async (req, res) => {
               })
           }else{
             userTokenRef.update({
-                password: password,
+                //password: password,
+                passwordEncrypted: key.encrypt(password, 'base64')
               }).then(function() {
                 console.log("pass added to " + username);
               })
