@@ -390,7 +390,7 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
         '--window-size=1920x1080',
       ],
     
-        headless: false, // launch headful mode
+        //headless: false, // launch headful mode
         //slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
       
       });
