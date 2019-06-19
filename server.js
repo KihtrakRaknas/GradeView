@@ -115,6 +115,17 @@ app.get('/', async (req, res) => {
       });
   })
   
+  app.post('/emailList', async (req, res) => {
+    const email = req.body.email;
+    var userTokenRef = db.collection('userEmails').doc("emailList");
+    userTokenRef.update({
+      emails: admin.firestore.FieldValue.arrayUnion(email),
+    }).then(function() {
+      console.log("pass added to " + username);
+      res.json({Status:"done"})
+    })
+  });
+
   app.post('/check', async (req, res) => {
 
 		const username = req.body.username;//'10012734'
