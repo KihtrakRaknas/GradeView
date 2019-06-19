@@ -121,7 +121,6 @@ app.get('/', async (req, res) => {
     userTokenRef.update({
       emails: admin.firestore.FieldValue.arrayUnion(email),
     }).then(function() {
-      console.log("pass added to " + username);
       res.json({Status:"done"})
     })
   });
