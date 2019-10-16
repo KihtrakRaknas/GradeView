@@ -346,9 +346,8 @@ async function checkUser(email,pass) {
   
       await page.goto(url, {waitUntil: 'domcontentloaded'});
       await page.goto(url2, {waitUntil: 'domcontentloaded'});
-
       var signedIn = false;
-      if(await $('.sectionTitle', await page.content()).text().trim() != "Invalid user name or password.  Please try again.")
+      if(page.url()!="https://students.sbschools.org/genesis/parents?gohome=true" && await $('.sectionTitle', await page.content()).text().trim() != "Invalid user name or password.  Please try again.")
         signedIn = true;
       await browser.close();
 
