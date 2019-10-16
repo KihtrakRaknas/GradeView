@@ -531,7 +531,7 @@ async function scrapeMP(page){
                 },indivMarkingPeriod);
                 await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
                 
-                //console.log(page.evaluate(()=>{return document.getElementsByClassName("list")[0].getElementsByTagName("span")[0].innerText.match(new RegExp('[0-1]?[0-9]/[0-3]?[0-9]/[0-9][0-9]'))?new Date()-new Date(document.getElementsByClassName("list")[0].getElementsByTagName("span")[0].innerText.match(new RegExp('[0-1]?[0-9]/[0-3]?[0-9]/[0-9][0-9]'))).getTime()>0:false}))
+                //console.log(await page.evaluate(()=>{return document.getElementsByClassName("list")[0].getElementsByTagName("span")[0].innerText.match(new RegExp('[0-1]?[0-9]/[0-3]?[0-9]/[0-9][0-9]'))?new Date()-new Date(document.getElementsByClassName("list")[0].getElementsByTagName("span")[0].innerText.match(new RegExp('[0-1]?[0-9]/[0-3]?[0-9]/[0-9][0-9]'))).getTime()>0:false}))
                 if(await page.evaluate(()=>{return document.getElementsByClassName("list")[0].getElementsByTagName("span")[0].innerText.match(new RegExp('[0-1]?[0-9]/[0-3]?[0-9]/[0-9][0-9]'))?new Date()-new Date(document.getElementsByClassName("list")[0].getElementsByTagName("span")[0].innerText.match(new RegExp('[0-1]?[0-9]/[0-3]?[0-9]/[0-9][0-9]'))).getTime()>0:false})){
                   if(!grades[ClassName][indivMarkingPeriod])
                     grades[ClassName][indivMarkingPeriod] = {}
