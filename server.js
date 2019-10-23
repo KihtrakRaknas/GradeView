@@ -456,7 +456,7 @@ async function scrapeMP(page){
         await page.goto(url2, {waitUntil: 'domcontentloaded'});
     
         var signedIn = false;
-        if(await $('.sectionTitle', await page.content()).text().trim() != "Invalid user name or password.  Please try again.")
+        if(page.url()!="https://students.sbschools.org/genesis/parents?gohome=true" && await $('.sectionTitle', await page.content()).text().trim() != "Invalid user name or password.  Please try again.")
           signedIn = true;
         if(!signedIn){
           await browser.close();
@@ -647,10 +647,10 @@ async function scrapeMP(page){
             '--disable-gpu',
             '--window-size=1920x1080',
           ],
-          /*
+          
             //headless: false, // launch headful mode
             //slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
-          */
+          
           });
         const page = await browser.newPage();
         await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3738.0 Safari/537.36');
@@ -705,7 +705,7 @@ async function scrapeMP(page){
         await page.goto(url2, {waitUntil: 'domcontentloaded'});
     
         var signedIn = false;
-        if(await $('.sectionTitle', await page.content()).text().trim() != "Invalid user name or password.  Please try again.")
+        if(page.url()!="https://students.sbschools.org/genesis/parents?gohome=true" && await $('.sectionTitle', await page.content()).text().trim() != "Invalid user name or password.  Please try again.")
           signedIn = true;
         if(!signedIn){
           await browser.close();
@@ -796,10 +796,10 @@ async function scrapeMP(page){
               '--disable-gpu',
               '--window-size=1920x1080',
             ],
-            /*
+            
               //headless: false, // launch headful mode
               //slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
-            */
+            
             });
           const page = await browser.newPage();
           await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3738.0 Safari/537.36');
@@ -854,7 +854,7 @@ async function scrapeMP(page){
           await page.goto(url2, {waitUntil: 'domcontentloaded'});
       
           var signedIn = false;
-          if(await $('.sectionTitle', await page.content()).text().trim() != "Invalid user name or password.  Please try again.")
+          if(page.url()!="https://students.sbschools.org/genesis/parents?gohome=true" && await $('.sectionTitle', await page.content()).text().trim() != "Invalid user name or password.  Please try again.")
             signedIn = true;
           if(!signedIn){
             await browser.close();
