@@ -7,8 +7,10 @@ const Fuse = require('fuse.js')
 const NodeRSA = require('node-rsa');
 const key = new NodeRSA({b: 512});
 const keysObj = require('./secureContent/keys')
+const bwipjs = require('bwip-js');
 key.importKey(keysObj.public, 'pkcs1-public-pem');
 key.importKey(keysObj.private, 'pkcs1-private-pem');
+
 
 var options = {
   shouldSort: true,
@@ -255,6 +257,25 @@ app.post('/addToken', async (req, res) => {
 	}
 });
 
+
+app.get('/id', async (req, res) => {
+	//res.json({get:"gotten"})
+  const id = req.query.id;//'10012734'
+  bwipjs.toBuffer({
+    bcid:        'code39',       // Barcode type
+    text:        id,    // Text to encode
+    scale:       3,               // 3x scaling factor
+    height:      10,              // Bar height, in millimeters
+    includetext: true,            // Show human-readable text
+    textxalign:  'center',        // Always good to set this
+  }, function (err, png) {
+    if (err) {
+      res.send(err)
+    } else {
+      res.send('data:image/png;base64,' + png.toString('base64'))
+    }
+  });
+})
 
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
@@ -875,3 +896,57 @@ var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='
         await browser.close();
           return classGrades
         }
+
+
+
+
+
+/*
+        var nodemailer = require('nodemailer');
+
+var transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'gradeviewapp@gmail.com',
+    pass: 'Tint@%79'
+  }
+});
+
+db.collection('userEmails').doc("emailList").get().then(doc => {
+  console.log(doc.data()["emails"]);
+  var emails = ['10020691@sbstudents.org','10014547@sbstudents.org'];
+  
+  for(thingToDelete of doc.data()["emails"]){
+    while(emails.indexOf(thingToDelete)!=-1){
+      emails.splice(emails.indexOf(thingToDelete),1)
+    }
+  }
+
+
+  setInterval(()=>{
+    email = emails[0]
+    while(emails.indexOf(email)!=-1){
+      emails.splice(emails.indexOf(email),1)
+    }
+    var mailOptions = {
+      from: 'gradeviewapp@gmail.com',
+      to: email,
+      subject: `GradeView - The Long Awaited Update`,
+      html: `<h4>Hello!</h4><br/>
+      Let me start with: <strong><a href="http://gradeview.kihtrak.com">GRADEVIEW</a> IS BACK</strong>.<br/><br/>
+      I’ve talked to Mr. Varela twice in person and sent him an email which he forwarded to the district technology supervisor. In both the in-person meetings and the emails, I asked if I had broken any school policies or Genesis terms of service. I have still not been informed of any violations and Mr. Varela stopped responding to my emails. It has been over 3 weeks and I have sent 2 follow-up emails. At this point in time, I’m assuming that no rules have been broken. As such, GradeView will resume full functionality until I get a response.<br/><br/>
+      Thank you!<br/><br/><br/><br/><br/>
+      You are receiving this email because you asked to be notified about updates to the GradeView app`
+    };
+
+    transporter.sendMail(mailOptions, function(error, info){
+      if (error) {
+        console.log(error);
+      } else {
+        console.log('Email sent: '+email+" ; Info:" + info.response);
+      }
+    });
+    
+  },10000)
+})
+*/
