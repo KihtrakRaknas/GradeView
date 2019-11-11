@@ -393,7 +393,12 @@ async function scrapeMP(page){
         //console.log(node.childNodes[9].innerText);
         assignData["Name"] = node.childNodes[9].innerText;
         //console.log(node.childNodes[11].childNodes[0].textContent.replace(/\s/g,''));
-        assignData["Grade"] = node.childNodes[11].childNodes[0].textContent.replace(/\s/g,'')
+        if(node.childNodes[11].childNodes.length<=3){
+          assignData["Grade"] = node.childNodes[11].childNodes[0].textContent.replace(/\s/g,'')
+        }else{
+          assignData["Grade"] = node.childNodes[11].childNodes[2].textContent.replace(/\s/g,'')
+          assignData["Weighting"] = node.childNodes[11].childNodes[1].textContent.replace(/\s/g,'').substring(1)
+        }
         assignments.push(assignData);
         }
     }
