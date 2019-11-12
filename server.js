@@ -46,6 +46,12 @@ admin.initializeApp({
 
 var db = admin.firestore();
 
+app.get('/timestamps', async (req, res) => {
+  db.collection('errors').doc("Auto-Scraper").get().then(doc => {
+    res.json(doc.data())
+  })
+})
+
 app.get('/', async (req, res) => {
 	//res.json({get:"gotten"})
   const username = req.query.username;//'10012734'
