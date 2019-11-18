@@ -397,7 +397,7 @@ async function scrapeMP(page){
           assignData["Grade"] = node.childNodes[11].childNodes[0].textContent.replace(/\s/g,'')
         }else{
           assignData["Grade"] = node.childNodes[11].childNodes[2].textContent.replace(/\s/g,'')
-          assignData["Weighting"] = node.childNodes[11].childNodes[1].textContent.replace(/\s/g,'').substring(1)
+          assignData["Weighting"] = node.childNodes[11].childNodes[1].textContent.replace(/\s/g,'')
         }
         if(node.childNodes[13].textContent.replace(/\s/g,'')!="")
           assignData["Comment"] = node.childNodes[13].textContent.trim()
