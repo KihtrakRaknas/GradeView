@@ -399,10 +399,10 @@ async function scrapeMP(page){
           assignData["Grade"] = node.childNodes[11].childNodes[2].textContent.replace(/\s/g,'')
           assignData["Weighting"] = node.childNodes[11].childNodes[1].textContent.replace(/\s/g,'')
         }
-        var commentText = document.getElementsByClassName("list")[0].childNodes[1].childNodes[24].childNodes[9].childNodes[3].innerText
+        var commentText = node.childNodes[9].childNodes[3].innerText
         commentText = commentText.substring(commentText.indexOf("Close")+5).trim()
         if(commentText!="")
-          assignData["Comment"] = commentText
+          assignData["Comment"] = commentText;
         assignments.push(assignData);
         }
     }
