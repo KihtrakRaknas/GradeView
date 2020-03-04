@@ -283,7 +283,7 @@ app.get('/checkCode', async (req, res) => {
       console.log('No such document!');
       return res.send("false")
     } else {
-      if(!(doc.data()["noAdCode"]&&doc.data()["noAdCode"] == req.query.code))
+      if(doc.data()["noAdCode"]&&doc.data()["noAdCode"] == req.query.code)
         return res.send("true")
       return res.send("false")
     }
