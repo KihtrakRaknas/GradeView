@@ -281,11 +281,11 @@ app.get('/checkCode', async (req, res) => {
   return db.collection('errors').doc('secure').get().then(doc => {
     if (!doc.exists) {
       console.log('No such document!');
-      return res.json({valid:false})
+      return res.send("false")
     } else {
       if(!(doc.data()["noAdCode"]&&doc.data()["noAdCode"] == req.query.code))
-        return res.json({valid:true})
-      return res.json({valid:false})
+        return res.send("true")
+      return res.send("false")
     }
   })
 })
