@@ -272,7 +272,7 @@ app.post('/addToken', async (req, res) => {
 
 async function updateLastAlive(username) {
   db.collection('userTimestamps').doc(username).set({
-    Timestamp: admin.firestore.FieldValue.serverTimestamp()
+    Timestamp: new Date().getTime()
   }).then(function() {
     console.log("Timestamp added to " + username);
   })
