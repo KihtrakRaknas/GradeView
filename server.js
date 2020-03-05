@@ -59,22 +59,19 @@ app.get('/', async (req, res) => {
   .then(doc => {
       if (!doc.exists) {
         console.log('No such document!');
-
         console.log("cached object not found")
         res.json({"Status":"loading..."})
-
         updateGrades(username,password,userRef).then(() => {
           //res.end();
         }).catch(err => {
           console.log('Error updating grades', err);
         })
-
         updateLastAlive(username)
       } else {
-
         db.collection('userTimestamps').doc(username).get().then(docTime => {
           if(!docTime.exists || (docTime.exists && docTime.data()["Timestamp"] < new Date().getTime() - (1000*60*60*24*30))){
             //This is a user who has started using the app after a long time
+            console.log("updating chache after lack of usage")
             updateGrades(username,password,userRef).then(() => {
               //res.end();
             }).catch(err => {
@@ -82,6 +79,7 @@ app.get('/', async (req, res) => {
             })
             res.json({"Status":"loading..."})
           }else{
+            console.log("returning cached object")
             res.json(doc.data())
           }
         }).then(()=>{
@@ -89,13 +87,7 @@ app.get('/', async (req, res) => {
         }).catch((err)=>{
           console.log(err)
         })
-
-        //console.log('Document data:', doc.data());
-
-        console.log("returning cached object")
-        
       }
-
     })
     .catch(err => {
       console.log('Error getting document', err);
@@ -103,9 +95,8 @@ app.get('/', async (req, res) => {
 	})
 
 	app.post('/', async (req, res) => {
-
-		const username = req.body.username;//'10012734'
-		const password = req.body.password; //'Sled%2#9'
+    const username = req.body.username;//'10012734'
+    const password = req.body.password; //'Sled%2#9'
     console.log(req.body);
     
     var userRef = db.collection('users').doc(username);
@@ -114,22 +105,19 @@ app.get('/', async (req, res) => {
     .then(doc => {
         if (!doc.exists) {
           console.log('No such document!');
-  
           console.log("cached object not found")
           res.json({"Status":"loading..."})
-
           updateGrades(username,password,userRef).then(() => {
             //res.end();
           }).catch(err => {
             console.log('Error updating grades', err);
           })
-
           updateLastAlive(username)
         } else {
-
           db.collection('userTimestamps').doc(username).get().then(docTime => {
             if(!docTime.exists || (docTime.exists && docTime.data()["Timestamp"] < new Date().getTime() - (1000*60*60*24*30))){
               //This is a user who has started using the app after a long time
+              console.log("updating chache after lack of usage")
               updateGrades(username,password,userRef).then(() => {
                 //res.end();
               }).catch(err => {
@@ -137,6 +125,7 @@ app.get('/', async (req, res) => {
               })
               res.json({"Status":"loading..."})
             }else{
+              console.log("returning cached object")
               res.json(doc.data())
             }
           }).then(()=>{
@@ -144,13 +133,7 @@ app.get('/', async (req, res) => {
           }).catch((err)=>{
             console.log(err)
           })
-
-          //console.log('Document data:', doc.data());
-  
-          console.log("returning cached object")
-          
         }
-  
       })
       .catch(err => {
         console.log('Error getting document', err);
