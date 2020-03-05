@@ -105,12 +105,31 @@ app.get('/', async (req, res) => {
             console.log('Error updating grades', err);
           })
 
-
+          updateLastAlive(username)
         } else {
+
+          db.collection('userTimestamps').doc(username).get().then(docTime => {
+            if(!docTime.exists || (docTime.exists && docTime.data()["Timestamp"] < new Date().getTime() - (1000*60*60*24*30))){
+              //This is a user who has started using the app after a long time
+              updateGrades(username,password,userRef).then(() => {
+                //res.end();
+              }).catch(err => {
+                console.log('Error updating grades', err);
+              })
+              res.json({"Status":"loading..."})
+            }else{
+              res.json(doc.data())
+            }
+          }).then(()=>{
+            updateLastAlive(username)
+          }).catch((err)=>{
+            console.log(err)
+          })
+
           console.log('Document data:', doc.data());
   
           console.log("returning cached object")
-          res.json(doc.data())
+          
         }
   
       })
@@ -119,6 +138,14 @@ app.get('/', async (req, res) => {
       });
   })
   
+  async function updateLastAlive(username) {
+    db.collection('userTimestamps').doc(username).set({
+      Timestamp: new Date().getTime()
+    }).then(function() {
+      console.log("Timestamp added to " + username);
+    })
+  }
+
   app.post('/emailList', async (req, res) => {
     const email = req.body.email;
     var userTokenRef = db.collection('userEmails').doc("emailList");
@@ -228,7 +255,6 @@ app.post('/addToken', async (req, res) => {
           if (!doc.exists) {
             var valid = await checkUser(username,password);
             if(valid){
-              updateLastAlive(username)
               userTokenRef.set({
                 Tokens: admin.firestore.FieldValue.arrayUnion(token),
                 //password: password,
@@ -241,7 +267,6 @@ app.post('/addToken', async (req, res) => {
           }else{
             //No check needed if password matches stored password
             if(doc.data()&&((doc.data()["password"]&&doc.data()["password"]==password)||(doc.data()["passwordEncrypted"]&&key.decrypt(doc.data()["passwordEncrypted"], 'utf8')==password))){
-              updateLastAlive(username)
               userTokenRef.update({
                 Tokens: admin.firestore.FieldValue.arrayUnion(token),
               }).then(function() {
@@ -251,7 +276,6 @@ app.post('/addToken', async (req, res) => {
             }else{
               var valid = await checkUser(username,password);
               if(valid){
-                updateLastAlive(username)
                 userTokenRef.update({
                   Tokens: admin.firestore.FieldValue.arrayUnion(token),
                   //password: password,
@@ -269,14 +293,6 @@ app.post('/addToken', async (req, res) => {
 		res.json({"Status":"Missing params"})
 	}
 });
-
-async function updateLastAlive(username) {
-  db.collection('userTimestamps').doc(username).set({
-    Timestamp: new Date().getTime()
-  }).then(function() {
-    console.log("Timestamp added to " + username);
-  })
-}
 
 app.get('/id', async (req, res) => {
 	//res.json({get:"gotten"})
