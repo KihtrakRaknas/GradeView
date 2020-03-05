@@ -495,7 +495,6 @@ async function scrapeMP(page){
           
           }).catch((err)=>{
             console.log(err)
-            await browser.close();
             console.log("Browser crashed")
             return {Status:"Browser crashed"};
           })
