@@ -228,18 +228,20 @@ app.post('/addToken', async (req, res) => {
           if (!doc.exists) {
             var valid = await checkUser(username,password);
             if(valid){
+              updateLastAlive(username)
               userTokenRef.set({
                 Tokens: admin.firestore.FieldValue.arrayUnion(token),
                 //password: password,
                 passwordEncrypted: key.encrypt(password, 'base64')
               }).then(function() {
                 console.log(token + " added to " + username);
-                  res.json({"Status":"Completed"})
+                res.json({"Status":"Completed"})
               })
             }
           }else{
             //No check needed if password matches stored password
             if(doc.data()&&((doc.data()["password"]&&doc.data()["password"]==password)||(doc.data()["passwordEncrypted"]&&key.decrypt(doc.data()["passwordEncrypted"], 'utf8')==password))){
+              updateLastAlive(username)
               userTokenRef.update({
                 Tokens: admin.firestore.FieldValue.arrayUnion(token),
               }).then(function() {
@@ -249,6 +251,7 @@ app.post('/addToken', async (req, res) => {
             }else{
               var valid = await checkUser(username,password);
               if(valid){
+                updateLastAlive(username)
                 userTokenRef.update({
                   Tokens: admin.firestore.FieldValue.arrayUnion(token),
                   //password: password,
@@ -267,6 +270,13 @@ app.post('/addToken', async (req, res) => {
 	}
 });
 
+async function updateLastAlive(username) {
+  db.collection('userTimestamps').doc(username).update({
+    Timestamp: admin.firestore.FieldValue.serverTimestamp()
+  }).then(function() {
+    console.log("Timestamp added to " + username);
+  })
+}
 
 app.get('/id', async (req, res) => {
 	//res.json({get:"gotten"})
