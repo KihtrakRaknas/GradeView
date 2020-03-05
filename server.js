@@ -493,9 +493,10 @@ async function scrapeMP(page){
             //headless: false, // launch headful mode
             //slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
           
-          }).catch((err)=>{
+          }).catch(async (err)=>{
             console.log(err)
             console.log("Browser crashed")
+            await browser.close();
             return {Status:"Browser crashed"};
           })
         const page = await browser.newPage();
