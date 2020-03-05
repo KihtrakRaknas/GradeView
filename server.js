@@ -977,7 +977,6 @@ async function scrapeMP(page){
           }
         }
       console.log("Grades gotten for: "+email)
-      console.log(classGrades)
       await browser.close();
         return classGrades
       }
@@ -994,7 +993,6 @@ async function scrapeMP(page){
           assignData["Credits"] = Number(node.childNodes[25].innerText)
               //console.log(node.childNodes);
               //console.log(node.childNodes[3].innerText);
-          console.log(node.childNodes)
               assignData["MP1"] = node.childNodes[9].innerText.trim()
               assignData["MP2"] = node.childNodes[11].innerText.trim()
               assignData["ME"] = node.childNodes[13].innerText.trim()
@@ -1123,7 +1121,6 @@ async function scrapeMP(page){
             }
 
         console.log("Grades gotten for: "+email)
-        console.log(classGrades)
         await browser.close();
           return classGrades
         }
