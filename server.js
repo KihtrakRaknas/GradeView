@@ -8,9 +8,11 @@ const NodeRSA = require('node-rsa');
 const key = new NodeRSA({b: 512});
 const keysObj = require('./secureContent/keys')
 const bwipjs = require('bwip-js');
+const { Expo } = require('expo-server-sdk')
 key.importKey(keysObj.public, 'pkcs1-public-pem');
 key.importKey(keysObj.private, 'pkcs1-private-pem');
 
+let expo = new Expo();
 
 var options = {
   shouldSort: true,
@@ -178,6 +180,8 @@ app.get('/', async (req, res) => {
 
   })
 
+  
+
   app.post('/newGrades', async (req, res) => {
 
 		const username = req.body.username;//'10012734'
@@ -185,6 +189,12 @@ app.get('/', async (req, res) => {
 
     return res.json(await getCurrentClassGrades(username,password));
 
+  })
+  
+  app.get('/testNotification', async (req, res) => {
+    if(req.query.token)
+      setTimeout(()=>notify([req.query.token],"Test title","Test subtitle","Notification body",{txt: "Testing"}) ,30*1000)
+    return res.text("attempted")
   })
 
   async function updateGrades(username,password,userRef){
@@ -1118,7 +1128,39 @@ async function scrapeMP(page){
           return classGrades
         }
 
-
+        function notify(tokens, title, subtitle, body, data){
+          console.log("Testing notifications")
+          console.log(tokens)
+          let messages = [];
+          for (let pushToken of tokens) {
+            if (!Expo.isExpoPushToken(pushToken)) {
+              console.error(`Push token ${pushToken} is not a valid Expo push token`);
+              continue;
+            }
+            // Construct a message (see https://docs.expo.io/versions/latest/guides/push-notifications.html)
+            messages.push({
+              to: pushToken,
+              sound: 'default',
+              priority: 'high',
+              title: title,
+              subtitle: subtitle,
+              body: body,
+              data: data,
+            })
+          }
+          console.log(messages)
+          let chunks = expo.chunkPushNotifications(messages);
+          (async () => {
+            for (let chunk of chunks) {
+              try {
+                let ticketChunk = await expo.sendPushNotificationsAsync(chunk);
+                console.log("Sent chunk")
+              } catch (error) {
+                console.error(error);
+              }
+            }
+          })();
+        }
 
 
 
