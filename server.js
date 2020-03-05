@@ -49,13 +49,12 @@ admin.initializeApp({
 var db = admin.firestore();
 
 app.get('/', async (req, res) => {
-	//res.json({get:"gotten"})
-  const username = req.query.username;//'10012734'
-  const password = req.query.password; //'Sled%2#9'
-  console.log("username: "+username+"; password: "+password);
-
-  var userRef = db.collection('users').doc(username);
+  const username = req.body.username;//'10012734'
+  const password = req.body.password; //'Sled%2#9'
+  console.log(req.body);
   
+  var userRef = db.collection('users').doc(username);
+
   userRef.get()
   .then(doc => {
       if (!doc.exists) {
@@ -70,11 +69,31 @@ app.get('/', async (req, res) => {
           console.log('Error updating grades', err);
         })
 
+        updateLastAlive(username)
       } else {
-        console.log('Document data:', doc.data());
+
+        db.collection('userTimestamps').doc(username).get().then(docTime => {
+          if(!docTime.exists || (docTime.exists && docTime.data()["Timestamp"] < new Date().getTime() - (1000*60*60*24*30))){
+            //This is a user who has started using the app after a long time
+            updateGrades(username,password,userRef).then(() => {
+              //res.end();
+            }).catch(err => {
+              console.log('Error updating grades', err);
+            })
+            res.json({"Status":"loading..."})
+          }else{
+            res.json(doc.data())
+          }
+        }).then(()=>{
+          updateLastAlive(username)
+        }).catch((err)=>{
+          console.log(err)
+        })
+
+        //console.log('Document data:', doc.data());
 
         console.log("returning cached object")
-        res.json(doc.data())
+        
       }
 
     })
@@ -126,7 +145,7 @@ app.get('/', async (req, res) => {
             console.log(err)
           })
 
-          console.log('Document data:', doc.data());
+          //console.log('Document data:', doc.data());
   
           console.log("returning cached object")
           
