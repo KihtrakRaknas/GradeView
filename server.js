@@ -64,6 +64,8 @@ app.get('/', async (req, res) => {
         updateGrades(username,password,userRef).then(() => {
           //res.end();
         }).catch(err => {
+          var index = currentUsers.indexOf(username);
+          if (index !== -1) currentUsers.splice(index, 1);
           console.log('Error updating grades', err);
         })
         updateLastAlive(username)
@@ -75,6 +77,8 @@ app.get('/', async (req, res) => {
             updateGrades(username,password,userRef).then(() => {
               //res.end();
             }).catch(err => {
+              var index = currentUsers.indexOf(username);
+              if (index !== -1) currentUsers.splice(index, 1);
               console.log('Error updating grades', err);
             })
             res.json({"Status":"loading..."})
@@ -110,6 +114,8 @@ app.get('/', async (req, res) => {
           updateGrades(username,password,userRef).then(() => {
             //res.end();
           }).catch(err => {
+            var index = currentUsers.indexOf(username);
+            if (index !== -1) currentUsers.splice(index, 1);
             console.log('Error updating grades', err);
           })
           updateLastAlive(username)
@@ -121,6 +127,8 @@ app.get('/', async (req, res) => {
               updateGrades(username,password,userRef).then(() => {
                 //res.end();
               }).catch(err => {
+                var index = currentUsers.indexOf(username);
+                if (index !== -1) currentUsers.splice(index, 1);
                 console.log('Error updating grades', err);
               })
               res.json({"Status":"loading..."})
@@ -195,6 +203,8 @@ app.get('/', async (req, res) => {
       return updateGrades(username,password,userRef).then(() => {
         //res.end();
     }).catch(err => {
+      var index = currentUsers.indexOf(username);
+      if (index !== -1) currentUsers.splice(index, 1);
       console.log('Error updating grades', err);
     })
 
