@@ -190,11 +190,11 @@ app.get('/', async (req, res) => {
     return res.json(await getCurrentClassGrades(username,password));
 
   })
-  
+
   app.get('/testNotification', async (req, res) => {
     if(req.query.token)
       setTimeout(()=>notify([req.query.token],"Test title","Test subtitle","Notification body",{txt: "Testing"}) ,30*1000)
-    return res.text("attempted")
+    return res.send("attempted")
   })
 
   async function updateGrades(username,password,userRef){
