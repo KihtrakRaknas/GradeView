@@ -592,7 +592,199 @@ async function scrapeMP(page){
       return grades;
   }
 
+  app.post('/money', async (req, res) => {
 
+		var email = req.body.username;//'10012734'
+    var pass = req.body.password; //'Sled%2#9'
+
+    email = encodeURIComponent(email);
+    pass = encodeURIComponent(pass);
+  var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
+  
+      const browser = await puppeteer.launch({
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--disable-gpu',
+          '--window-size=1920x1080',
+        ],
+        
+          //headless: false, // launch headful mode
+          //slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
+        
+        });
+      const page = await browser.newPage();
+      await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3738.0 Safari/537.36');
+  
+      await page.setRequestInterception(true);
+      const blockedResourceTypes = [
+        'image',
+        'media',
+        'font',
+        'texttrack',
+        'object',
+        'beacon',
+        'csp_report',
+        'imageset',
+        'stylesheet',
+      ];
+  
+      const skippedResources = [
+        'quantserve',
+        'adzerk',
+        'doubleclick',
+        'adition',
+        'exelator',
+        'sharethrough',
+        'cdn.api.twitter',
+        'google-analytics',
+        'googletagmanager',
+        'google',
+        'fontawesome',
+        'facebook',
+        'analytics',
+        'optimizely',
+        'clicktale',
+        'mixpanel',
+        'zedo',
+        'clicksor',
+        'tiqcdn',
+      ];
+      page.on('request', (req) => {
+        const requestUrl = req._url.split('?')[0].split('#')[0];
+        if (
+          blockedResourceTypes.indexOf(req.resourceType()) !== -1 ||
+          skippedResources.some(resource => requestUrl.indexOf(resource) !== -1)
+        ) {
+          req.abort();
+        } else {
+          req.continue();
+      }
+    });
+  
+      await page.goto(url, {waitUntil: 'domcontentloaded'});
+      await page.goto(url2, {waitUntil: 'domcontentloaded'});
+  
+      var signedIn = false;
+      if(page.url()!="https://students.sbschools.org/genesis/parents?gohome=true" && await $('.sectionTitle', await page.content()).text().trim() != "Invalid user name or password.  Please try again.")
+        signedIn = true;
+      if(!signedIn){
+        await browser.close();
+        console.log("BAD user||pass")
+        return {Status:"Invalid"};
+      }
+  
+      const url3 = "https://students.sbschools.org/genesis/parents?tab1=studentdata&tab2=studentsummary&action=form&studentid="+email.split("%40")[0];
+      await page.goto(url3, {waitUntil: 'domcontentloaded'});
+      
+      let money = await page.evaluate(() => {
+        for(let item of document.getElementsByClassName('cellLeft')){
+          if(item.innerText.trim().substring(0,1) === "$"){
+            return item.innerText.trim()
+            break;
+          }
+        }
+        return "No value found"
+      })
+
+      await browser.close();
+    return res.json({money});
+
+  })
+
+
+  async function getClassGrades(email, pass) {
+    var grades = {};
+  
+    var email = encodeURIComponent(email);
+    pass = encodeURIComponent(pass);
+  var url2 = 'https://students.sbschools.org/genesis/j_security_check?j_username='+email+'&j_password='+pass;
+  
+      const browser = await puppeteer.launch({
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--disable-gpu',
+          '--window-size=1920x1080',
+        ],
+        
+          //headless: false, // launch headful mode
+          //slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
+        
+        });
+      const page = await browser.newPage();
+      await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3738.0 Safari/537.36');
+  
+      await page.setRequestInterception(true);
+      const blockedResourceTypes = [
+        'image',
+        'media',
+        'font',
+        'texttrack',
+        'object',
+        'beacon',
+        'csp_report',
+        'imageset',
+        'stylesheet',
+      ];
+  
+      const skippedResources = [
+        'quantserve',
+        'adzerk',
+        'doubleclick',
+        'adition',
+        'exelator',
+        'sharethrough',
+        'cdn.api.twitter',
+        'google-analytics',
+        'googletagmanager',
+        'google',
+        'fontawesome',
+        'facebook',
+        'analytics',
+        'optimizely',
+        'clicktale',
+        'mixpanel',
+        'zedo',
+        'clicksor',
+        'tiqcdn',
+      ];
+      page.on('request', (req) => {
+        const requestUrl = req._url.split('?')[0].split('#')[0];
+        if (
+          blockedResourceTypes.indexOf(req.resourceType()) !== -1 ||
+          skippedResources.some(resource => requestUrl.indexOf(resource) !== -1)
+        ) {
+          req.abort();
+        } else {
+          req.continue();
+      }
+    });
+  
+      await page.goto(url, {waitUntil: 'domcontentloaded'});
+      await page.goto(url2, {waitUntil: 'domcontentloaded'});
+  
+      var signedIn = false;
+      if(page.url()!="https://students.sbschools.org/genesis/parents?gohome=true" && await $('.sectionTitle', await page.content()).text().trim() != "Invalid user name or password.  Please try again.")
+        signedIn = true;
+      if(!signedIn){
+        await browser.close();
+        console.log("BAD user||pass")
+        return {Status:"Invalid"};
+      }
+  
+      const url3 = "https://students.sbschools.org/genesis/parents?tab1=studentdata&tab2=grading&tab3=history&action=form&studentid="+email.split("%40")[0];
+      await page.goto(url3, {waitUntil: 'domcontentloaded'});
+      
+      let classGrades = await scrapeClassGrades(page)
+
+      await browser.close();
+      return classGrades
+    }
 
 
 
