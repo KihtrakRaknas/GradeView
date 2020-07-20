@@ -13,3 +13,8 @@ npm start
 
 ## Maintenance
 The app calculates weighted GPA. For this to work the server must know the weightings of different classes. This information is available online. It has been scraped and stored in the *classWeightingOutput.json* file.
+To generate a new up-to-date *classWeightingOutput.json* file run:
+```bash
+node courseWeight.js
+```
+(Make sure you have already done `npm install`)
