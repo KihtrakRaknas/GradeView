@@ -356,7 +356,7 @@ async function checkUser(email, pass) {
     //slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
   })
   const page = await createPage(browser)
-  await openAndSignIntoGenesis(page,email,pass)
+  await openAndSignIntoGenesis(page, email, pass)
   const signedIn = await checkSignIn(page)
   await browser.close();
   return signedIn;
@@ -373,7 +373,7 @@ app.post('/money', async (req, res) => {
     //slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
   })
   const page = await createPage(browser)
-  await openAndSignIntoGenesis(page,email,pass)
+  await openAndSignIntoGenesis(page, email, pass)
 
   const signedIn = await checkSignIn(page)
   if (!signedIn) {
@@ -479,7 +479,7 @@ async function getPreviousYearsFinalLetterGrades(email, pass) {
     //slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
   })
   const page = await createPage(browser)
-  await openAndSignIntoGenesis(page,email,pass)
+  await openAndSignIntoGenesis(page, email, pass)
   const signedIn = await checkSignIn(page)
   if (!signedIn) {
     await browser.close();
@@ -561,7 +561,7 @@ async function getThisYearsMPLetterGrades(email, pass) {
     //slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
   })
   const page = await createPage(browser)
-  await openAndSignIntoGenesis(page,email,pass)
+  await openAndSignIntoGenesis(page, email, pass)
   const signedIn = await checkSignIn(page)
   if (!signedIn) {
     await browser.close();
