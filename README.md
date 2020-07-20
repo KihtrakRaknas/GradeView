@@ -10,3 +10,6 @@ Then start the server with
 ```bash
 npm start
 ```
+
+## Maintenance
+The app calculates weighted GPA. For this to work the server must know the weightings of different classes. This information is available online. It has been scraped and stored in the *classWeightingOutput.json* file.
