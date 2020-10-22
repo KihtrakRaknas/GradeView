@@ -125,7 +125,7 @@ app.post('/', async (req, res) => {
         db.collection('userTimestamps').doc(username).get().then(docTime => {
           if (!docTime.exists || (docTime.exists && docTime.data()["Timestamp"] < new Date().getTime() - (1000 * 60 * 60 * 24 * 30))) {
             //This is a user who has started using the app after a long time
-            console.log("updating chache after lack of usage")
+            console.log("updating cache after lack of usage")
             updateGrades(username, password, userRef).then(() => {
               //res.end();
             }).catch(err => {
@@ -518,8 +518,9 @@ async function scrapeCurrentClassGrades(page) {
       if (node.classList && !node.classList.contains("listheading") && node.childNodes.length >= 15) {
         var assignData = {};
         if (!Number(node.childNodes[25].innerText))
-          continue;
-        assignData["Credits"] = Number(node.childNodes[25].innerText)
+          /*continue;*/assignData["Credits"] = Number(node.childNodes[23].innerText)
+        else
+          assignData["Credits"] = Number(node.childNodes[25].innerText)
         //console.log(node.childNodes);
         //console.log(node.childNodes[3].innerText);
         assignData["MP1"] = node.childNodes[9].innerText.trim()
@@ -571,7 +572,8 @@ async function getThisYearsMPLetterGrades(email, pass) {
 
   const url3 = "https://students.sbschools.org/genesis/parents?tab1=studentdata&tab2=grading&tab3=current&action=form&studentid=" + email.split("%40")[0];
   await page.goto(url3, { waitUntil: 'domcontentloaded' });
-
+  //CHECK IF AUP IS DONE
+  //await page.evaluate(()=>document.getElementById("dialog-system_clientMessage").innerText.includes("restore access"))
   let classGrades = await scrapeCurrentClassGrades(page)
   for (var classIndex in classGrades) {
     if (findWeight(classGrades[classIndex]["Name"]))
