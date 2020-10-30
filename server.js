@@ -86,7 +86,13 @@ let handleGradeRequest = async (req, res) => {
             res.json({ "Status": "loading..." })
           } else {
             console.log("returning cached object")
-            res.json(doc.data())
+            /*var userTokenRef = db.collection('userData').doc(username);
+            userTokenRef.get().then(async userTokenDoc => {
+              if (userTokenDoc.data() && ((userTokenDoc.data()["password"] && userTokenDoc.data()["password"] == password) || (userTokenDoc.data()["passwordEncrypted"] && key.decrypt(userTokenDoc.data()["passwordEncrypted"], 'utf8') == password))) 
+                */res.json(doc.data())/*
+              else
+                console.log("credentials don't match")
+            })*/
           }
         }).then(() => {
           updateLastAlive(username)
@@ -100,7 +106,7 @@ let handleGradeRequest = async (req, res) => {
     });
 }
 
-app.get('/', handleGradeRequest)
+app.get('/', (req,res)=>{res.send("Hello, your probably exploring the inner workings of GradeView. Nice to meet you!")})
 
 app.post('/', handleGradeRequest)
 
