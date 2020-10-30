@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { getCurrentGrades, createBrowser, createPage, openAndSignIntoGenesis, checkSignIn } = require('./GradeViewGetCurrentGrades/getCurrentGrades');
+const { getCurrentGrades, createBrowser, createPage, openAndSignIntoGenesis, checkSignIn, getSchoolFromEmail } = require('./GradeViewGetCurrentGrades/getCurrentGrades');
 const puppeteer = require('puppeteer');
 const $ = require('cheerio');
 const express = require('express')
@@ -50,7 +50,7 @@ admin.initializeApp({
 
 var db = admin.firestore();
 
-app.get('/', async (req, res) => {
+let handleGradeRequest = async (req, res) => {
   const username = req.body.username;//'10012734'
   const password = req.body.password; //'Sled%2#9'
   console.log(req.body);
@@ -98,57 +98,11 @@ app.get('/', async (req, res) => {
     .catch(err => {
       console.log('Error getting document', err);
     });
-})
+}
 
-app.post('/', async (req, res) => {
-  const username = req.body.username;//'10012734'
-  const password = req.body.password; //'Sled%2#9'
-  console.log(req.body);
+app.get('/', handleGradeRequest)
 
-  var userRef = db.collection('users').doc(username);
-
-  userRef.get()
-    .then(doc => {
-      if (!doc.exists) {
-        console.log('No such document!');
-        console.log("cached object not found")
-        res.json({ "Status": "loading..." })
-        updateGrades(username, password, userRef).then(() => {
-          //res.end();
-        }).catch(err => {
-          var index = currentUsers.indexOf(username);
-          if (index !== -1) currentUsers.splice(index, 1);
-          console.log('Error updating grades', err);
-        })
-        updateLastAlive(username)
-      } else {
-        db.collection('userTimestamps').doc(username).get().then(docTime => {
-          if (!docTime.exists || (docTime.exists && docTime.data()["Timestamp"] < new Date().getTime() - (1000 * 60 * 60 * 24 * 30))) {
-            //This is a user who has started using the app after a long time
-            console.log("updating cache after lack of usage")
-            updateGrades(username, password, userRef).then(() => {
-              //res.end();
-            }).catch(err => {
-              var index = currentUsers.indexOf(username);
-              if (index !== -1) currentUsers.splice(index, 1);
-              console.log('Error updating grades', err);
-            })
-            res.json({ "Status": "loading..." })
-          } else {
-            console.log("returning cached object")
-            res.json(doc.data())
-          }
-        }).then(() => {
-          updateLastAlive(username)
-        }).catch((err) => {
-          console.log(err)
-        })
-      }
-    })
-    .catch(err => {
-      console.log('Error getting document', err);
-    });
-})
+app.post('/', handleGradeRequest)
 
 async function updateLastAlive(username) {
   db.collection('userTimestamps').doc(username).set({
@@ -348,7 +302,7 @@ const url = 'https://students.sbschools.org/genesis/parents?gohome=true';
 async function checkUser(email, pass) {
   if (!email.trim() || !pass.trim())
     return false;
-
+  const schoolDomain = getSchoolFromEmail(email)
   email = encodeURIComponent(email);
   pass = encodeURIComponent(pass);
   const browser = await createBrowser({
@@ -356,8 +310,8 @@ async function checkUser(email, pass) {
     //slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
   })
   const page = await createPage(browser)
-  await openAndSignIntoGenesis(page, email, pass)
-  const signedIn = await checkSignIn(page)
+  await openAndSignIntoGenesis(page, email, pass, schoolDomain)
+  const signedIn = await checkSignIn(page, schoolDomain)
   await browser.close();
   return signedIn;
 }
@@ -365,6 +319,7 @@ async function checkUser(email, pass) {
 app.post('/money', async (req, res) => {
   var email = req.body.username;//'10012734'
   var pass = req.body.password; //'Sled%2#9'
+  const schoolDomain = getSchoolFromEmail(email)
   email = encodeURIComponent(email);
   pass = encodeURIComponent(pass);
 
@@ -373,16 +328,16 @@ app.post('/money', async (req, res) => {
     //slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
   })
   const page = await createPage(browser)
-  await openAndSignIntoGenesis(page, email, pass)
+  await openAndSignIntoGenesis(page, email, pass, schoolDomain)
 
-  const signedIn = await checkSignIn(page)
+  const signedIn = await checkSignIn(page, schoolDomain)
   if (!signedIn) {
     await browser.close();
     console.log("BAD user||pass")
     return { Status: "Invalid" };
   }
 
-  const url3 = "https://students.sbschools.org/genesis/parents?tab1=studentdata&tab2=studentsummary&action=form&studentid=" + email.split("%40")[0];
+  const url3 = getSchoolUrl(schoolDomain,"main")+"?tab1=studentdata&tab2=studentsummary&action=form&studentid=" + email.split("%40")[0];
   await page.goto(url3, { waitUntil: 'domcontentloaded' });
 
   let money = await page.evaluate(() => {
@@ -472,6 +427,7 @@ async function scrapeClassGrades(page) {
 
 
 async function getPreviousYearsFinalLetterGrades(email, pass) {
+  const schoolDomain = getSchoolFromEmail(email)
   email = encodeURIComponent(email);
   pass = encodeURIComponent(pass);
   const browser = await createBrowser({
@@ -479,15 +435,15 @@ async function getPreviousYearsFinalLetterGrades(email, pass) {
     //slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
   })
   const page = await createPage(browser)
-  await openAndSignIntoGenesis(page, email, pass)
-  const signedIn = await checkSignIn(page)
+  await openAndSignIntoGenesis(page, email, pass, schoolDomain)
+  const signedIn = await checkSignIn(page, schoolDomain)
   if (!signedIn) {
     await browser.close();
     console.log("BAD user||pass")
     return { Status: "Invalid" };
   }
 
-  const url3 = "https://students.sbschools.org/genesis/parents?tab1=studentdata&tab2=grading&tab3=history&action=form&studentid=" + email.split("%40")[0];
+  const url3 = getSchoolUrl(schoolDomain,"main")+"?tab1=studentdata&tab2=grading&tab3=history&action=form&studentid=" + email.split("%40")[0];
   await page.goto(url3, { waitUntil: 'domcontentloaded' });
 
   let classGrades = await scrapeClassGrades(page)
@@ -554,6 +510,7 @@ async function scrapeCurrentClassGrades(page) {
 
 
 async function getThisYearsMPLetterGrades(email, pass) {
+  const schoolDomain = getSchoolFromEmail(email)
   email = encodeURIComponent(email);
   pass = encodeURIComponent(pass);
 
@@ -562,15 +519,15 @@ async function getThisYearsMPLetterGrades(email, pass) {
     //slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
   })
   const page = await createPage(browser)
-  await openAndSignIntoGenesis(page, email, pass)
-  const signedIn = await checkSignIn(page)
+  await openAndSignIntoGenesis(page, email, pass, schoolDomain)
+  const signedIn = await checkSignIn(page, schoolDomain)
   if (!signedIn) {
     await browser.close();
     console.log("BAD user||pass")
     return { Status: "Invalid" };
   }
 
-  const url3 = "https://students.sbschools.org/genesis/parents?tab1=studentdata&tab2=grading&tab3=current&action=form&studentid=" + email.split("%40")[0];
+  const url3 = getSchoolUrl(schoolDomain,"main")+"?tab1=studentdata&tab2=grading&tab3=current&action=form&studentid=" + email.split("%40")[0];
   await page.goto(url3, { waitUntil: 'domcontentloaded' });
   //CHECK IF AUP IS DONE
   //await page.evaluate(()=>document.getElementById("dialog-system_clientMessage").innerText.includes("restore access"))
