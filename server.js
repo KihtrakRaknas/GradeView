@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { getCurrentGrades, createBrowser, createPage, openAndSignIntoGenesis, checkSignIn, getSchoolFromEmail, getSchoolUrl } = require('./GradeViewGetCurrentGrades/getCurrentGrades');
+const { getCurrentGrades, createBrowser, createPage, openAndSignIntoGenesis, checkSignIn, getSchoolFromEmail, getSchoolUrl, getIdFormUrl } = require('./GradeViewGetCurrentGrades/getCurrentGrades');
 const puppeteer = require('puppeteer');
 const $ = require('cheerio');
 const express = require('express')
@@ -341,7 +341,7 @@ app.post('/money', async (req, res) => {
     return { Status: "Invalid" };
   }
 
-  const url3 = getSchoolUrl(schoolDomain,"main")+"?tab1=studentdata&tab2=studentsummary&action=form&studentid=" + email.split("%40")[0];
+  const url3 = getSchoolUrl(schoolDomain,"main")+"?tab1=studentdata&tab2=studentsummary&action=form&studentid=" + getIdFormUrl(page.url());
   await page.goto(url3, { waitUntil: 'domcontentloaded' });
 
   let money = await page.evaluate(() => {
@@ -447,7 +447,7 @@ async function getPreviousYearsFinalLetterGrades(email, pass) {
     return { Status: "Invalid" };
   }
 
-  const url3 = getSchoolUrl(schoolDomain,"main")+"?tab1=studentdata&tab2=grading&tab3=history&action=form&studentid=" + email.split("%40")[0];
+  const url3 = getSchoolUrl(schoolDomain,"main")+"?tab1=studentdata&tab2=grading&tab3=history&action=form&studentid=" + getIdFormUrl(page.url());
   await page.goto(url3, { waitUntil: 'domcontentloaded' });
 
   let classGrades = await scrapeClassGrades(page)
@@ -531,7 +531,7 @@ async function getThisYearsMPLetterGrades(email, pass) {
     return { Status: "Invalid" };
   }
 
-  const url3 = getSchoolUrl(schoolDomain,"main")+"?tab1=studentdata&tab2=grading&tab3=current&action=form&studentid=" + email.split("%40")[0];
+  const url3 = getSchoolUrl(schoolDomain,"main")+"?tab1=studentdata&tab2=grading&tab3=current&action=form&studentid=" + getIdFormUrl(page.url());
   await page.goto(url3, { waitUntil: 'domcontentloaded' });
   //CHECK IF AUP IS DONE
   //await page.evaluate(()=>document.getElementById("dialog-system_clientMessage").innerText.includes("restore access"))
