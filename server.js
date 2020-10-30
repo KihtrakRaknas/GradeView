@@ -301,8 +301,6 @@ app.get('/checkCode', async (req, res) => {
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 
-const url = 'https://students.sbschools.org/genesis/parents?gohome=true';
-
 //var id = '10012734'
 
 async function checkUser(email, pass) {
