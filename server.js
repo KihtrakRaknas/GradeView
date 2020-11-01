@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { getCurrentGrades, createBrowser, createPage, openAndSignIntoGenesis, checkSignIn, getSchoolFromEmail, getSchoolUrl, getIdFormUrl } = require('./GradeViewGetCurrentGrades/getCurrentGrades');
+const { getCurrentGrades, createBrowser, createPage, openAndSignIntoGenesis, checkSignIn, getSchoolUrl, getIdFormUrl, postFixUsername } = require('./GradeViewGetCurrentGrades/getCurrentGrades');
 const puppeteer = require('puppeteer');
 const $ = require('cheerio');
 const express = require('express')
@@ -53,9 +53,10 @@ var db = admin.firestore();
 let handleGradeRequest = async (req, res) => {
   const username = req.body.username;//'10012734'
   const password = req.body.password; //'Sled%2#9'
+  const school = req.body.school;
   console.log(req.body);
 
-  var userRef = db.collection('users').doc(username);
+  var userRef = db.collection('users').doc(postFixUsername(username,school));
 
   userRef.get()
     .then(doc => {
@@ -63,23 +64,23 @@ let handleGradeRequest = async (req, res) => {
         console.log('No such document!');
         console.log("cached object not found")
         res.json({ "Status": "loading..." })
-        updateGrades(username, password, userRef).then(() => {
+        updateGrades(username, password, userRef, school).then(() => {
           //res.end();
         }).catch(err => {
-          var index = currentUsers.indexOf(username);
+          var index = currentUsers.indexOf(postFixUsername(username,school));
           if (index !== -1) currentUsers.splice(index, 1);
           console.log('Error updating grades', err);
         })
-        updateLastAlive(username)
+        updateLastAlive(postFixUsername(username,school))
       } else {
-        db.collection('userTimestamps').doc(username).get().then(docTime => {
+        db.collection('userTimestamps').doc(postFixUsername(username,school)).get().then(docTime => {
           if (!docTime.exists || (docTime.exists && docTime.data()["Timestamp"] < new Date().getTime() - (1000 * 60 * 60 * 24 * 30))) {
             //This is a user who has started using the app after a long time
             console.log("updating cache after lack of usage")
-            updateGrades(username, password, userRef).then(() => {
+            updateGrades(username, password, userRef, school).then(() => {
               //res.end();
             }).catch(err => {
-              var index = currentUsers.indexOf(username);
+              var index = currentUsers.indexOf(postFixUsername(username,school));
               if (index !== -1) currentUsers.splice(index, 1);
               console.log('Error updating grades', err);
             })
@@ -95,7 +96,7 @@ let handleGradeRequest = async (req, res) => {
             })*/
           }
         }).then(() => {
-          updateLastAlive(username)
+          updateLastAlive(postFixUsername(username,school))
         }).catch((err) => {
           console.log(err)
         })
@@ -132,19 +133,21 @@ app.post('/check', async (req, res) => {
 
   const username = req.body.username;//'10012734'
   const password = req.body.password; //'Sled%2#9'
-
+  const school = req.body.school;
+  
   console.log(req.body);
-  var signedIn = await checkUser(username, password)
+  var signedIn = await checkUser(username, password, school)
   console.log({ valid: signedIn })
   res.json({ valid: signedIn })
   res.end();
 
   if (signedIn) {
-    var userTokenRef = db.collection('userData').doc(username);
+    var userTokenRef = db.collection('userData').doc(postFixUsername(username,school));
     userTokenRef.get().then(doc => {
       if (!doc.exists) {
         userTokenRef.set({
           //password: password,
+          ...(school && {school: school}),
           passwordEncrypted: key.encrypt(password, 'base64')
         }).then(function () {
           console.log("pass added to " + username);
@@ -152,6 +155,7 @@ app.post('/check', async (req, res) => {
       } else {
         userTokenRef.update({
           //password: password,
+          ...(school && {school: school}),
           passwordEncrypted: key.encrypt(password, 'base64')
         }).then(function () {
           console.log("pass added to " + username);
@@ -161,11 +165,12 @@ app.post('/check', async (req, res) => {
   } else {
     return null;
   }
-  var userRef = db.collection('users').doc(username);
-  return updateGrades(username, password, userRef).then(() => {
+  var userRef = db.collection('users').doc(postFixUsername(username,school));
+  return updateGrades(username, password, userRef, school).then(() => {
     //res.end();
+    updateLastAlive(postFixUsername(username,school))
   }).catch(err => {
-    var index = currentUsers.indexOf(username);
+    var index = currentUsers.indexOf(postFixUsername(username,school));
     if (index !== -1) currentUsers.splice(index, 1);
     console.log('Error updating grades', err);
   })
@@ -176,8 +181,9 @@ app.post('/oldGrades', async (req, res) => {
 
   const username = req.body.username;//'10012734'
   const password = req.body.password; //'Sled%2#9'
+  const schoolDomain = req.body.school;
 
-  return res.json(await getPreviousYearsFinalLetterGrades(username, password));
+  return res.json(await getPreviousYearsFinalLetterGrades(username, password, schoolDomain));
 
 })
 
@@ -186,8 +192,9 @@ app.post('/oldGrades', async (req, res) => {
 app.post('/newGrades', async (req, res) => {
   const username = req.body.username;//'10012734'
   const password = req.body.password; //'Sled%2#9'
+  const schoolDomain = req.body.school;
 
-  return res.json(await getThisYearsMPLetterGrades(username, password));
+  return res.json(await getThisYearsMPLetterGrades(username, password, schoolDomain));
 })
 
 app.get('/testNotification', async (req, res) => {
@@ -196,13 +203,13 @@ app.get('/testNotification', async (req, res) => {
   return res.send("attempted")
 })
 
-async function updateGrades(username, password, userRef) {
+async function updateGrades(username, password, userRef, school) {
   console.log(currentUsers)
-  if (!currentUsers.includes(username)) {
-    currentUsers.push(username)
+  if (!currentUsers.includes(postFixUsername(username,school))) {
+    currentUsers.push(postFixUsername(username,school))
     console.log("Updating cache for future requests")
 
-    var dataObj = await getCurrentGrades(username, password)
+    var dataObj = await getCurrentGrades(username, password, school)
     if (dataObj["Status"] == "Completed") {
       console.log(dataObj["Status"])
       userRef.set(dataObj);
@@ -210,7 +217,7 @@ async function updateGrades(username, password, userRef) {
       console.log("Not cached due to bad request")
     }
 
-    var index = currentUsers.indexOf(username);
+    var index = currentUsers.indexOf(postFixUsername(username,school));
     if (index !== -1) currentUsers.splice(index, 1);
   }
   return "done";
@@ -219,17 +226,19 @@ async function updateGrades(username, password, userRef) {
 app.post('/addToken', async (req, res) => {
   const username = req.body.user.username;
   const password = req.body.user.password;
+  const schoolDomain = req.body.user.school;
   const token = req.body.token.value;
 
   if (username && token && password) {
-    var userTokenRef = db.collection('userData').doc(username);
+    var userTokenRef = db.collection('userData').doc(postFixUsername(username,schoolDomain));
     userTokenRef.get().then(async doc => {
       if (!doc.exists) {
-        var valid = await checkUser(username, password);
+        var valid = await checkUser(username, password, schoolDomain);
         if (valid) {
           userTokenRef.set({
             Tokens: admin.firestore.FieldValue.arrayUnion(token),
             //password: password,
+            ...(school && {school: schoolDomain}),
             passwordEncrypted: key.encrypt(password, 'base64')
           }).then(function () {
             console.log(token + " added to " + username);
@@ -246,11 +255,12 @@ app.post('/addToken', async (req, res) => {
             res.json({ "Status": "Completed" })
           })
         } else {
-          var valid = await checkUser(username, password);
+          var valid = await checkUser(username, password, schoolDomain);
           if (valid) {
             userTokenRef.update({
               Tokens: admin.firestore.FieldValue.arrayUnion(token),
               //password: password,
+              ...(school && {school: schoolDomain}),
               passwordEncrypted: key.encrypt(password, 'base64')
             }).then(function () {
               console.log(token + " added to " + username);
@@ -303,15 +313,14 @@ app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 
 //var id = '10012734'
 
-async function checkUser(email, pass) {
-  if (!email.trim() || !pass.trim())
+async function checkUser(email, pass, schoolDomain) {
+  if (!email|| !pass || !email.trim() || !pass.trim())
     return false;
-  const schoolDomain = getSchoolFromEmail(email)
   email = encodeURIComponent(email);
   pass = encodeURIComponent(pass);
   const browser = await createBrowser({
-    //headless: false, // launch headful mode
-    //slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
+    // headless: false, // launch headful mode
+    // slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
   })
   const page = await createPage(browser)
   await openAndSignIntoGenesis(page, email, pass, schoolDomain)
@@ -323,7 +332,8 @@ async function checkUser(email, pass) {
 app.post('/money', async (req, res) => {
   var email = req.body.username;//'10012734'
   var pass = req.body.password; //'Sled%2#9'
-  const schoolDomain = getSchoolFromEmail(email)
+  var schoolDomain = req.body.school; //'Sled%2#9'
+  
   email = encodeURIComponent(email);
   pass = encodeURIComponent(pass);
 
@@ -436,8 +446,7 @@ async function scrapeClassGrades(page) {
 }
 
 
-async function getPreviousYearsFinalLetterGrades(email, pass) {
-  const schoolDomain = getSchoolFromEmail(email)
+async function getPreviousYearsFinalLetterGrades(email, pass, schoolDomain) {
   email = encodeURIComponent(email);
   pass = encodeURIComponent(pass);
   const browser = await createBrowser({
@@ -508,8 +517,7 @@ async function scrapeCurrentClassGrades(page) {
 }
 
 
-async function getThisYearsMPLetterGrades(email, pass) {
-  const schoolDomain = getSchoolFromEmail(email)
+async function getThisYearsMPLetterGrades(email, pass, schoolDomain) {
   email = encodeURIComponent(email);
   pass = encodeURIComponent(pass);
 
