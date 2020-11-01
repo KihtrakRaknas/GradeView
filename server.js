@@ -328,8 +328,8 @@ app.post('/money', async (req, res) => {
   pass = encodeURIComponent(pass);
 
   const browser = await createBrowser({
-    //headless: false, // launch headful mode
-    //slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
+    // headless: false, // launch headful mode
+    // slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
   })
   const page = await createPage(browser)
   await openAndSignIntoGenesis(page, email, pass, schoolDomain)
@@ -387,6 +387,12 @@ function findWeight(search) {
       return className["Weight"];
     }
   }
+
+  if(search.toLowerCase().split(" ").includes("honors"))
+   return "Honors Weighting"
+
+  if(search.toLowerCase().split(" ").includes("ap"))
+   return "A.P. Weighting"
 
   var result = fuse.search(cleanStrForFuzzy(search));
   if (result[0] && result[0]["item"]) {
@@ -470,41 +476,30 @@ async function getPreviousYearsFinalLetterGrades(email, pass) {
   return classGrades
 }
 
+
 async function scrapeCurrentClassGrades(page) {
   var list = await page.evaluate(() => {
-    var assignments = [];
-    for (var node of document.getElementsByClassName("list")[0].childNodes[1].childNodes) {
-
+    const headingNodes = [...document.getElementsByClassName("listheading")[0].childNodes]
+    const columnsToRead = ["MP1","MP2","ME","MP3","MP4","FE","EARNED","ATT.","COURSE"].map(header=>({
+        header,
+        index: headingNodes.findIndex(node=>node.innerText && node.innerText.toUpperCase()==header)
+    }))    
+    const assignments = [];
+    for (let node of document.getElementsByClassName("list")[0].childNodes[1].childNodes) {
       if (node.classList && !node.classList.contains("listheading") && node.childNodes.length >= 15) {
-        var assignData = {};
-        if (!Number(node.childNodes[25].innerText))
-          /*continue;*/assignData["Credits"] = Number(node.childNodes[23].innerText)
-        else
-          assignData["Credits"] = Number(node.childNodes[25].innerText)
-        //console.log(node.childNodes);
-        //console.log(node.childNodes[3].innerText);
-        assignData["MP1"] = node.childNodes[9].innerText.trim()
-        assignData["MP2"] = node.childNodes[11].innerText.trim()
-        assignData["ME"] = node.childNodes[13].innerText.trim()
-        assignData["MP3"] = node.childNodes[17].innerText.trim()
-        assignData["MP4"] = node.childNodes[19].innerText.trim()
-        assignData["FE"] = node.childNodes[21].innerText.trim()
-
-        if (!assignData["MP1"])
-          delete assignData["MP1"]
-        if (!assignData["MP2"])
-          delete assignData["MP2"]
-        if (!assignData["ME"])
-          delete assignData["ME"]
-        if (!assignData["MP3"])
-          delete assignData["MP3"]
-        if (!assignData["MP4"])
-          delete assignData["MP4"]
-        if (!assignData["FE"])
-          delete assignData["FE"]
-
-        assignData["Name"] = node.childNodes[1].innerText;
-        assignments.push(assignData);
+            const assignData = {};
+        const earnedIndex = columnsToRead.find(el=>el.header=="EARNED").index
+            if (!Number(node.childNodes[earnedIndex].innerText))
+              assignData["Credits"] = Number(node.childNodes[columnsToRead.find(el=>el.header=="ATT.").index].innerText)
+            else
+              assignData["Credits"] = Number(node.childNodes[earnedIndex].innerText)
+            columnsToRead.filter(el=>el.index!=-1 && ["MP1","MP2","ME","MP3","MP4","FE"].includes(el.header)).forEach((column)=>{
+          const columnText = node.childNodes[column.index].innerText.trim()
+          if(columnText)
+              assignData[column.header] = columnText
+            })
+            assignData["Name"] = node.childNodes[columnsToRead.find(el=>el.header=="COURSE").index].innerText;
+            assignments.push(assignData);
       }
     }
     return assignments;
@@ -519,8 +514,8 @@ async function getThisYearsMPLetterGrades(email, pass) {
   pass = encodeURIComponent(pass);
 
   const browser = await createBrowser({
-    //headless: false, // launch headful mode
-    //slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
+    // headless: false, // launch headful mode
+    // slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
   })
   const page = await createPage(browser)
   await openAndSignIntoGenesis(page, email, pass, schoolDomain)
