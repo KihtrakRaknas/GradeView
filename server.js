@@ -398,11 +398,13 @@ function findWeight(search) {
     }
   }
 
-  if(search.toLowerCase().split(" ").includes("honors"))
-   return "Honors Weighting"
+  for(let honorsKeyWord of ["honors","h"])
+    if(search.toLowerCase().split(" ").includes(honorsKeyWord))
+      return "Honors Weighting"
 
-  if(search.toLowerCase().split(" ").includes("ap"))
-   return "A.P. Weighting"
+  for(let apKeyWord of ["ap"])
+    if(search.toLowerCase().split(" ").includes(apKeyWord))
+      return "A.P. Weighting"
 
   var result = fuse.search(cleanStrForFuzzy(search));
   if (result[0] && result[0]["item"]) {
