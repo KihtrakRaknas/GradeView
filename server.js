@@ -405,8 +405,6 @@ function findWeight(search) {
   for(let apKeyWord of ["ap","cip"])
     if(search.toLowerCase().split(/(\s+)/).includes(apKeyWord))
       return "A.P. Weighting"
-
-  console.log(search.toLowerCase())
   
   var result = fuse.search(cleanStrForFuzzy(search));
   if (result[0] && result[0]["item"]) {
