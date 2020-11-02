@@ -399,13 +399,15 @@ function findWeight(search) {
   }
 
   for(let honorsKeyWord of ["honors","h"])
-    if(search.toLowerCase().split(" ").includes(honorsKeyWord))
+    if(search.toLowerCase().split(/(\s+)/).includes(honorsKeyWord))
       return "Honors Weighting"
 
-  for(let apKeyWord of ["ap"])
-    if(search.toLowerCase().split(" ").includes(apKeyWord))
+  for(let apKeyWord of ["ap","cip","pltw"])
+    if(search.toLowerCase().split(/(\s+)/).includes(apKeyWord))
       return "A.P. Weighting"
 
+  console.log(search.toLowerCase())
+  
   var result = fuse.search(cleanStrForFuzzy(search));
   if (result[0] && result[0]["item"]) {
     db.collection('errors').doc("Fuzzy Search Results").update({
@@ -472,8 +474,9 @@ async function getPreviousYearsFinalLetterGrades(email, pass, schoolDomain) {
   for (var yr in classGrades) {
     var yrData = classGrades[yr]
     for (var classIndex in yrData) {
-      if (findWeight(classGrades[yr][classIndex]["Name"]))
-        classGrades[yr][classIndex]["Weight"] = findWeight(classGrades[yr][classIndex]["Name"])
+      const weightFromFunc = findWeight(classGrades[yr][classIndex]["Name"])
+      if (weightFromFunc)
+        classGrades[yr][classIndex]["Weight"] = weightFromFunc
       if (!classGrades[yr][classIndex]["Weight"]) {
         //console.log("ERR"+classGrades[yr][classIndex]["Name"]+"not found!")
         db.collection('errors').doc("Unknown Classes").update({
