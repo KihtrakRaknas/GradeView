@@ -54,6 +54,12 @@ async function getCourseWeight(url) {
     obj.push({Name:"Concert Band",Weight:"N/A"}) 
     obj.push({Name:"Health Wellness",Weight:"N/A"}) 
 
+    //Other school cases
+
+
+    obj.push({Name:"Principles of Biomedical Science",Weight:"A.P. Weighting"}) 
+    obj.push({Name:"Medical Interventions",Weight:"A.P. Weighting"}) 
+
 
     try {
       fs.writeFileSync('classWeightingOutput.json', JSON.stringify(obj))

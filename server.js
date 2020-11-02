@@ -402,7 +402,7 @@ function findWeight(search) {
     if(search.toLowerCase().split(/(\s+)/).includes(honorsKeyWord))
       return "Honors Weighting"
 
-  for(let apKeyWord of ["ap","cip","pltw"])
+  for(let apKeyWord of ["ap","cip"])
     if(search.toLowerCase().split(/(\s+)/).includes(apKeyWord))
       return "A.P. Weighting"
 
