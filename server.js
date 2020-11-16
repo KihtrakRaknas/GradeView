@@ -91,8 +91,10 @@ let handleGradeRequest = async (req, res) => {
               if (userTokenDoc.data() && ((userTokenDoc.data()["password"] && userTokenDoc.data()["password"] == password) || (userTokenDoc.data()["passwordEncrypted"] && key.decrypt(userTokenDoc.data()["passwordEncrypted"], 'utf8') == password))) {
                 res.json(doc.data())
                 console.log("returning cached object")
-              } else
+              } else{
                 console.log("credentials don't match")
+                res.json({ "Status": "Invalid" })
+              }
             })
           }
         }).then(() => {
