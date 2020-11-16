@@ -86,16 +86,16 @@ let handleGradeRequest = async (req, res) => {
             })
             res.json({ "Status": "loading..." })
           } else {
-            /*var userTokenRef = db.collection('userData').doc(username);
+            var userTokenRef = db.collection('userData').doc(postFixUsername(username,school));
             userTokenRef.get().then(async userTokenDoc => {
               if (userTokenDoc.data() && ((userTokenDoc.data()["password"] && userTokenDoc.data()["password"] == password) || (userTokenDoc.data()["passwordEncrypted"] && key.decrypt(userTokenDoc.data()["passwordEncrypted"], 'utf8') == password))) {
-                */res.json(doc.data())/*
+                res.json(doc.data())
                 console.log("returning cached object")
               } else{
                 console.log("credentials don't match")
                 res.json({ "Status": "Invalid" })
               }
-            })*/
+            })
           }
         }).then(() => {
           updateLastAlive(postFixUsername(username,school))
