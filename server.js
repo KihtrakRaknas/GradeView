@@ -1,6 +1,5 @@
 require('dotenv').config();
-const { getCurrentGrades, createBrowser, createPage, openAndSignIntoGenesis, checkSignIn, getSchoolUrl, getIdFormUrl, postFixUsername } = require('./GradeViewGetCurrentGrades/getCurrentGrades');
-const puppeteer = require('puppeteer');
+const { getCurrentGrades, openAndSignIntoGenesis, getSchoolUrl, getIdFromHTML, postFixUsername, openPage } = require('./GradeViewGetCurrentGrades/getCurrentGrades');
 const $ = require('cheerio');
 const express = require('express')
 const bodyParser = require('body-parser');
@@ -56,7 +55,7 @@ let handleGradeRequest = async (req, res) => {
   const school = req.body.school;
   console.log(req.body);
 
-  var userRef = db.collection('users').doc(postFixUsername(username,school));
+  var userRef = db.collection('users').doc(postFixUsername(username, school));
 
   userRef.get()
     .then(doc => {
@@ -67,38 +66,38 @@ let handleGradeRequest = async (req, res) => {
         updateGrades(username, password, userRef, school).then(() => {
           //res.end();
         }).catch(err => {
-          var index = currentUsers.indexOf(postFixUsername(username,school));
+          var index = currentUsers.indexOf(postFixUsername(username, school));
           if (index !== -1) currentUsers.splice(index, 1);
           console.log('Error updating grades', err);
         })
-        updateLastAlive(postFixUsername(username,school))
+        updateLastAlive(postFixUsername(username, school))
       } else {
-        db.collection('userTimestamps').doc(postFixUsername(username,school)).get().then(docTime => {
+        db.collection('userTimestamps').doc(postFixUsername(username, school)).get().then(docTime => {
           if (!docTime.exists || (docTime.exists && docTime.data()["Timestamp"] < new Date().getTime() - (1000 * 60 * 60 * 24 * 30))) {
             //This is a user who has started using the app after a long time
             console.log("updating cache after lack of usage")
             updateGrades(username, password, userRef, school).then(() => {
               //res.end();
             }).catch(err => {
-              var index = currentUsers.indexOf(postFixUsername(username,school));
+              var index = currentUsers.indexOf(postFixUsername(username, school));
               if (index !== -1) currentUsers.splice(index, 1);
               console.log('Error updating grades', err);
             })
             res.json({ "Status": "loading..." })
           } else {
-            var userTokenRef = db.collection('userData').doc(postFixUsername(username,school));
+            var userTokenRef = db.collection('userData').doc(postFixUsername(username, school));
             userTokenRef.get().then(async userTokenDoc => {
               if (userTokenDoc.data() && ((userTokenDoc.data()["password"] && userTokenDoc.data()["password"] == password) || (userTokenDoc.data()["passwordEncrypted"] && key.decrypt(userTokenDoc.data()["passwordEncrypted"], 'utf8') == password))) {
                 res.json(doc.data())
                 console.log("returning cached object")
-              } else{
+              } else {
                 console.log("credentials don't match")
                 res.json({ "Status": "Invalid" })
               }
             })
           }
         }).then(() => {
-          updateLastAlive(postFixUsername(username,school))
+          updateLastAlive(postFixUsername(username, school))
         }).catch((err) => {
           console.log(err)
         })
@@ -109,7 +108,7 @@ let handleGradeRequest = async (req, res) => {
     });
 }
 
-app.get('/', (req,res)=>{res.send("Hello, your probably exploring the inner workings of GradeView. Nice to meet you!")})
+app.get('/', (req, res) => { res.send("Hello, your probably exploring the inner workings of GradeView. Nice to meet you!") })
 
 app.post('/', handleGradeRequest)
 
@@ -136,7 +135,7 @@ app.post('/check', async (req, res) => {
   const username = req.body.username;//'10012734'
   const password = req.body.password; //'Sled%2#9'
   const school = req.body.school;
-  
+
   console.log(req.body);
   var signedIn = await checkUser(username, password, school)
   console.log({ valid: signedIn })
@@ -144,12 +143,12 @@ app.post('/check', async (req, res) => {
   res.end();
 
   if (signedIn) {
-    var userTokenRef = db.collection('userData').doc(postFixUsername(username,school));
+    var userTokenRef = db.collection('userData').doc(postFixUsername(username, school));
     userTokenRef.get().then(doc => {
       if (!doc.exists) {
         userTokenRef.set({
           //password: password,
-          ...(school && {school: school}),
+          ...(school && { school: school }),
           passwordEncrypted: key.encrypt(password, 'base64')
         }).then(function () {
           console.log("pass added to " + username);
@@ -157,7 +156,7 @@ app.post('/check', async (req, res) => {
       } else {
         userTokenRef.update({
           //password: password,
-          ...(school && {school: school}),
+          ...(school && { school: school }),
           passwordEncrypted: key.encrypt(password, 'base64')
         }).then(function () {
           console.log("pass added to " + username);
@@ -167,12 +166,12 @@ app.post('/check', async (req, res) => {
   } else {
     return null;
   }
-  var userRef = db.collection('users').doc(postFixUsername(username,school));
+  var userRef = db.collection('users').doc(postFixUsername(username, school));
   return updateGrades(username, password, userRef, school).then(() => {
     //res.end();
-    updateLastAlive(postFixUsername(username,school))
+    updateLastAlive(postFixUsername(username, school))
   }).catch(err => {
-    var index = currentUsers.indexOf(postFixUsername(username,school));
+    var index = currentUsers.indexOf(postFixUsername(username, school));
     if (index !== -1) currentUsers.splice(index, 1);
     console.log('Error updating grades', err);
   })
@@ -207,8 +206,8 @@ app.get('/testNotification', async (req, res) => {
 
 async function updateGrades(username, password, userRef, school) {
   console.log(currentUsers)
-  if (!currentUsers.includes(postFixUsername(username,school))) {
-    currentUsers.push(postFixUsername(username,school))
+  if (!currentUsers.includes(postFixUsername(username, school))) {
+    currentUsers.push(postFixUsername(username, school))
     console.log("Updating cache for future requests")
 
     var dataObj = await getCurrentGrades(username, password, school)
@@ -219,7 +218,7 @@ async function updateGrades(username, password, userRef, school) {
       console.log("Not cached due to bad request")
     }
 
-    var index = currentUsers.indexOf(postFixUsername(username,school));
+    var index = currentUsers.indexOf(postFixUsername(username, school));
     if (index !== -1) currentUsers.splice(index, 1);
   }
   return "done";
@@ -232,7 +231,7 @@ app.post('/addToken', async (req, res) => {
   const token = req.body.token.value;
 
   if (username && token && password) {
-    var userTokenRef = db.collection('userData').doc(postFixUsername(username,schoolDomain));
+    var userTokenRef = db.collection('userData').doc(postFixUsername(username, schoolDomain));
     userTokenRef.get().then(async doc => {
       if (!doc.exists) {
         var valid = await checkUser(username, password, schoolDomain);
@@ -240,7 +239,7 @@ app.post('/addToken', async (req, res) => {
           userTokenRef.set({
             Tokens: admin.firestore.FieldValue.arrayUnion(token),
             //password: password,
-            ...(school && {school: schoolDomain}),
+            ...(school && { school: schoolDomain }),
             passwordEncrypted: key.encrypt(password, 'base64')
           }).then(function () {
             console.log(token + " added to " + username);
@@ -262,7 +261,7 @@ app.post('/addToken', async (req, res) => {
             userTokenRef.update({
               Tokens: admin.firestore.FieldValue.arrayUnion(token),
               //password: password,
-              ...(school && {school: schoolDomain}),
+              ...(school && { school: schoolDomain }),
               passwordEncrypted: key.encrypt(password, 'base64')
             }).then(function () {
               console.log(token + " added to " + username);
@@ -316,18 +315,11 @@ app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 //var id = '10012734'
 
 async function checkUser(email, pass, schoolDomain) {
-  if (!email|| !pass || !email.trim() || !pass.trim())
+  if (!email || !pass || !email.trim() || !pass.trim())
     return false;
   email = encodeURIComponent(email);
   pass = encodeURIComponent(pass);
-  const browser = await createBrowser({
-    // headless: false, // launch headful mode
-    // slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
-  })
-  const page = await createPage(browser)
-  await openAndSignIntoGenesis(page, email, pass, schoolDomain)
-  const signedIn = await checkSignIn(page, schoolDomain)
-  await browser.close();
+  const { signedIn } = openAndSignIntoGenesis(email, pass, schoolDomain)
   return signedIn;
 }
 
@@ -335,38 +327,28 @@ app.post('/money', async (req, res) => {
   var email = req.body.username;//'10012734'
   var pass = req.body.password; //'Sled%2#9'
   var schoolDomain = req.body.school; //'Sled%2#9'
-  
+
   email = encodeURIComponent(email);
   pass = encodeURIComponent(pass);
 
-  const browser = await createBrowser({
-    // headless: false, // launch headful mode
-    // slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
-  })
-  const page = await createPage(browser)
-  await openAndSignIntoGenesis(page, email, pass, schoolDomain)
-
-  const signedIn = await checkSignIn(page, schoolDomain)
-  if (!signedIn) {
-    await browser.close();
+  const signInInfo = await openAndSignIntoGenesis(email, pass, schoolDomain)
+  const cookieJar = signInInfo.cookie
+  //Verify Sign in was successful
+  if (!signInInfo.signedIn) {
     console.log("BAD user||pass")
     return { Status: "Invalid" };
   }
 
-  const url3 = getSchoolUrl(schoolDomain,"main")+"?tab1=studentdata&tab2=studentsummary&action=form&studentid=" + getIdFormUrl(page.url());
-  await page.goto(url3, { waitUntil: 'domcontentloaded' });
+  const url3 = getSchoolUrl(schoolDomain, "main") + "?tab1=studentdata&tab2=studentsummary&action=form&studentid=" + getIdFromHTML(signInInfo.$);
+  const sumPage = await openPage(cookieJar, url3);
 
-  let money = await page.evaluate(() => {
-    for (let item of document.getElementsByClassName('cellLeft')) {
-      if (item.innerText.trim().substring(0, 1) === "$") {
-        return item.innerText.trim()
-        break;
-      }
+  let money = "No value found"
+  $(".cellLeft", sumPage).each(function (i, el) {
+    if ($(el).text().trim().substring(0, 1) === "$") {
+      money = $(el).text().trim()
     }
-    return "No value found"
   })
 
-  await browser.close();
   return res.json({ money });
 
 })
@@ -400,14 +382,14 @@ function findWeight(search) {
     }
   }
 
-  for(let honorsKeyWord of ["honors","h"])
-    if(search.toLowerCase().split(/(\s+)/).includes(honorsKeyWord))
+  for (let honorsKeyWord of ["honors", "h"])
+    if (search.toLowerCase().split(/(\s+)/).includes(honorsKeyWord))
       return "Honors Weighting"
 
-  for(let apKeyWord of ["ap","cip"])
-    if(search.toLowerCase().split(/(\s+)/).includes(apKeyWord))
+  for (let apKeyWord of ["ap", "cip"])
+    if (search.toLowerCase().split(/(\s+)/).includes(apKeyWord))
       return "A.P. Weighting"
-  
+
   var result = fuse.search(cleanStrForFuzzy(search));
   if (result[0] && result[0]["item"]) {
     db.collection('errors').doc("Fuzzy Search Results").update({
@@ -420,56 +402,50 @@ function findWeight(search) {
 }
 
 
-async function scrapeClassGrades(page) {
-  var list = await page.evaluate(() => {
-    var years = [];
-    var assignments = [];
-    for (var node of document.getElementsByClassName("list")[0].childNodes[1].childNodes) {
+async function scrapeClassGrades($) {
+  const years = [];
+  let assignments = [];
 
-      if (node.classList && !node.classList.contains("listheading") && node.childNodes.length >= 15) {
-        var assignData = {};
-        if (!Number(node.childNodes[11].innerText))
-          continue;
-        assignData["Credits"] = Number(node.childNodes[11].innerText)
-        //console.log(node.childNodes);
-        //console.log(node.childNodes[3].innerText);
-        assignData["FG"] = node.childNodes[9].innerText;
+  $(".list>tbody>tr").each((i, el) => {
+    const columns = $("td",el)
+    const rowClass = $(el).attr('class')
+    if (rowClass && !rowClass.includes("listheading") && columns.length >= 7) {
+      var assignData = {};
+      if (!Number(columns.eq(5).text()))
+        return
+      assignData["Credits"] = Number(columns.eq(5).text())
+      //console.log(node.childNodes);
+      //console.log(node.childNodes[3].innerText);
+      assignData["FG"] = columns.eq(4).text().trim();
 
-        assignData["Name"] = node.childNodes[5].innerText;
-        assignments.push(assignData);
-      } else if (node.classList && !node.classList.contains("listheading") && node.childNodes.length >= 9) {
-        //year ended
-        if (assignments.length > 0)
-          years.push(assignments);
-        var assignments = [];
-      }
+      assignData["Name"] = columns.eq(2).text().trim().replace(/\s+/g, ' ');
+      assignments.push(assignData);
+    } else if (rowClass && !rowClass.includes("listheading") && columns.length >= 4) {
+      //year ended
+      if (assignments.length > 0)
+        years.push(assignments);
+      assignments = [];
     }
-    return years;
-  });
-  return list;
+  })
+  return years;
 }
 
 
 async function getPreviousYearsFinalLetterGrades(email, pass, schoolDomain) {
   email = encodeURIComponent(email);
   pass = encodeURIComponent(pass);
-  const browser = await createBrowser({
-    //headless: false, // launch headful mode
-    //slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
-  })
-  const page = await createPage(browser)
-  await openAndSignIntoGenesis(page, email, pass, schoolDomain)
-  const signedIn = await checkSignIn(page, schoolDomain)
-  if (!signedIn) {
-    await browser.close();
+  const signInInfo = await openAndSignIntoGenesis(email, pass, schoolDomain)
+  const cookieJar = signInInfo.cookie
+  //Verify Sign in was successful
+  if (!signInInfo.signedIn) {
     console.log("BAD user||pass")
     return { Status: "Invalid" };
   }
 
-  const url3 = getSchoolUrl(schoolDomain,"main")+"?tab1=studentdata&tab2=grading&tab3=history&action=form&studentid=" + getIdFormUrl(page.url());
-  await page.goto(url3, { waitUntil: 'domcontentloaded' });
+  const url3 = getSchoolUrl(schoolDomain, "main") + "?tab1=studentdata&tab2=grading&tab3=history&action=form&studentid=" + getIdFromHTML(signInInfo.$);
+  const classGradesPage = await openPage(cookieJar, url3)
 
-  let classGrades = await scrapeClassGrades(page)
+  let classGrades = await scrapeClassGrades($.load(classGradesPage))
 
   for (var yr in classGrades) {
     var yrData = classGrades[yr]
@@ -486,39 +462,37 @@ async function getPreviousYearsFinalLetterGrades(email, pass, schoolDomain) {
     }
   }
   console.log("Grades gotten for: " + email)
-  await browser.close();
   return classGrades
 }
 
 
-async function scrapeCurrentClassGrades(page) {
-  var list = await page.evaluate(() => {
-    const headingNodes = [...document.getElementsByClassName("listheading")[0].childNodes]
-    const columnsToRead = ["MP1","MP2","ME","MP3","MP4","FE","EARNED","ATT.","COURSE"].map(header=>({
-        header,
-        index: headingNodes.findIndex(node=>node.innerText && node.innerText.toUpperCase()==header)
-    }))    
+async function scrapeCurrentClassGrades($) {
+    const headingNodes = $(".listheading>.cellLeft")
+    const columnsToRead = ["MP1", "MP2", "ME", "MP3", "MP4", "FE", "EARNED", "ATT.", "COURSE"].map(header => ({
+      header,
+      index: headingNodes.index($(`.list td:icontains("${header}")`))//node => node.innerText && node.innerText.toUpperCase() == header)
+    }))
     const assignments = [];
-    for (let node of document.getElementsByClassName("list")[0].childNodes[1].childNodes) {
-      if (node.classList && !node.classList.contains("listheading") && node.childNodes.length >= 15) {
-            const assignData = {};
-        const earnedIndex = columnsToRead.find(el=>el.header=="EARNED").index
-            if (!Number(node.childNodes[earnedIndex].innerText))
-              assignData["Credits"] = Number(node.childNodes[columnsToRead.find(el=>el.header=="ATT.").index].innerText)
-            else
-              assignData["Credits"] = Number(node.childNodes[earnedIndex].innerText)
-            columnsToRead.filter(el=>el.index!=-1 && ["MP1","MP2","ME","MP3","MP4","FE"].includes(el.header)).forEach((column)=>{
-          const columnText = node.childNodes[column.index].innerText.trim()
-          if(columnText)
-              assignData[column.header] = columnText
-            })
-            assignData["Name"] = node.childNodes[columnsToRead.find(el=>el.header=="COURSE").index].innerText;
-            assignments.push(assignData);
+    $(`.list>tbody>tr`).each((i,el)=>{
+      const columns = $("td",el)
+      const rowClass = $(el).attr('class')
+      if (rowClass && !rowClass.includes("listheading") && columns.length >= 7) {
+        const assignData = {};
+        const earnedIndex = columnsToRead.find(el => el.header == "EARNED").index
+        if (!Number(columns.eq(earnedIndex).text()))
+          assignData["Credits"] = Number(columns.eq(columnsToRead.find(el => el.header == "ATT.").index).text())
+        else
+          assignData["Credits"] = Number(columns.eq(earnedIndex).text())
+        columnsToRead.filter(el => el.index != -1 && ["MP1", "MP2", "ME", "MP3", "MP4", "FE"].includes(el.header)).forEach((column) => {
+          const columnText = columns.eq(column.index).text().trim().split("\n")[0]
+          if (columnText)
+            assignData[column.header] = columnText
+        })
+        assignData["Name"] = columns.eq(columnsToRead.find(el => el.header == "COURSE").index).text().trim().replace(/\s+/g, ' ');
+        assignments.push(assignData);
       }
-    }
+    })
     return assignments;
-  });
-  return list;
 }
 
 
@@ -526,24 +500,19 @@ async function getThisYearsMPLetterGrades(email, pass, schoolDomain) {
   email = encodeURIComponent(email);
   pass = encodeURIComponent(pass);
 
-  const browser = await createBrowser({
-    // headless: false, // launch headful mode
-    // slowMo: 1000, // slow down puppeteer script so that it's easier to follow visually
-  })
-  const page = await createPage(browser)
-  await openAndSignIntoGenesis(page, email, pass, schoolDomain)
-  const signedIn = await checkSignIn(page, schoolDomain)
-  if (!signedIn) {
-    await browser.close();
+  const signInInfo = await openAndSignIntoGenesis(email, pass, schoolDomain)
+  const cookieJar = signInInfo.cookie
+  //Verify Sign in was successful
+  if (!signInInfo.signedIn) {
     console.log("BAD user||pass")
     return { Status: "Invalid" };
   }
 
-  const url3 = getSchoolUrl(schoolDomain,"main")+"?tab1=studentdata&tab2=grading&tab3=current&action=form&studentid=" + getIdFormUrl(page.url());
-  await page.goto(url3, { waitUntil: 'domcontentloaded' });
+  const url3 = getSchoolUrl(schoolDomain, "main") + "?tab1=studentdata&tab2=grading&tab3=current&action=form&studentid=" + getIdFromHTML(signInInfo.$);
+  const classGradesPage = await openPage(cookieJar, url3)
   //CHECK IF AUP IS DONE
   //await page.evaluate(()=>document.getElementById("dialog-system_clientMessage").innerText.includes("restore access"))
-  let classGrades = await scrapeCurrentClassGrades(page)
+  let classGrades = await scrapeCurrentClassGrades($.load(classGradesPage))
   for (var classIndex in classGrades) {
     if (findWeight(classGrades[classIndex]["Name"]))
       classGrades[classIndex]["Weight"] = findWeight(classGrades[classIndex]["Name"])
@@ -556,7 +525,6 @@ async function getThisYearsMPLetterGrades(email, pass, schoolDomain) {
   }
 
   console.log("Grades gotten for: " + email)
-  await browser.close();
   return classGrades
 }
 
