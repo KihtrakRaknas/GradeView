@@ -319,7 +319,7 @@ async function checkUser(email, pass, schoolDomain) {
     return false;
   email = encodeURIComponent(email);
   pass = encodeURIComponent(pass);
-  const { signedIn } = openAndSignIntoGenesis(email, pass, schoolDomain)
+  const { signedIn } = await openAndSignIntoGenesis(email, pass, schoolDomain)
   return signedIn;
 }
 
