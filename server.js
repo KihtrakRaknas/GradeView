@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { getCurrentGrades, createBrowser, createPage, openAndSignIntoGenesis, checkSignIn, getSchoolUrl, getIdFormUrl, postFixUsername } = require('./GradeViewGetCurrentGrades/getCurrentGrades');
+const { getCurrentGrades, createBrowser, createPage, openAndSignIntoGenesis, checkSignIn, getSchoolUrl, getIdFormUrl, postFixUsername } = require('./getCurrentGrades');
 const puppeteer = require('puppeteer');
 const $ = require('cheerio');
 const express = require('express')
