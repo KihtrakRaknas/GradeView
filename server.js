@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { getCurrentGrades, openAndSignIntoGenesis, getSchoolUrl, getIdFromHTML, postFixUsername, openPage } = require('./GradeViewGetCurrentGrades/getCurrentGrades');
+const { getCurrentGrades, openAndSignIntoGenesis, getSchoolUrl, getIdFromSignInInfo, postFixUsername, openPage } = require('./GradeViewGetCurrentGrades/getCurrentGrades');
 const $ = require('cheerio');
 const express = require('express')
 const bodyParser = require('body-parser');
@@ -338,8 +338,8 @@ app.post('/money', async (req, res) => {
     console.log("BAD user||pass")
     return { Status: "Invalid" };
   }
-
-  const url3 = getSchoolUrl(schoolDomain, "main") + "?tab1=studentdata&tab2=studentsummary&action=form&studentid=" + getIdFromHTML(signInInfo.$);
+  
+  const url3 = getSchoolUrl(schoolDomain, "main") + "?tab1=studentdata&tab2=studentsummary&action=form&studentid=" + getIdFromSignInInfo(signInInfo);
   const sumPage = await openPage(cookieJar, url3);
 
   let money = "No value found"
@@ -442,7 +442,7 @@ async function getPreviousYearsFinalLetterGrades(email, pass, schoolDomain) {
     return { Status: "Invalid" };
   }
 
-  const url3 = getSchoolUrl(schoolDomain, "main") + "?tab1=studentdata&tab2=grading&tab3=history&action=form&studentid=" + getIdFromHTML(signInInfo.$);
+  const url3 = getSchoolUrl(schoolDomain, "main") + "?tab1=studentdata&tab2=grading&tab3=history&action=form&studentid=" + getIdFromSignInInfo(signInInfo);
   const classGradesPage = await openPage(cookieJar, url3)
 
   let classGrades = await scrapeClassGrades($.load(classGradesPage))
@@ -467,6 +467,7 @@ async function getPreviousYearsFinalLetterGrades(email, pass, schoolDomain) {
 
 
 async function scrapeCurrentClassGrades($) {
+  //require('fs').writeFileSync('debug.html', $.html());
     const headingNodes = $(".listheading>.cellLeft")
     const columnsToRead = ["MP1", "MP2", "ME", "MP3", "MP4", "FE", "EARNED", "ATT.", "COURSE"].map(header => ({
       header,
@@ -508,7 +509,9 @@ async function getThisYearsMPLetterGrades(email, pass, schoolDomain) {
     return { Status: "Invalid" };
   }
 
-  const url3 = getSchoolUrl(schoolDomain, "main") + "?tab1=studentdata&tab2=grading&tab3=current&action=form&studentid=" + getIdFromHTML(signInInfo.$);
+  const url3 = getSchoolUrl(schoolDomain, "main") + "?tab1=studentdata&tab2=grading&tab3=current&action=form&studentid=" + getIdFromSignInInfo(signInInfo);
+  //console.log(url3)
+  //require('fs').writeFileSync('debug.html', signInInfo.$.html());
   const classGradesPage = await openPage(cookieJar, url3)
   //CHECK IF AUP IS DONE
   //await page.evaluate(()=>document.getElementById("dialog-system_clientMessage").innerText.includes("restore access"))
