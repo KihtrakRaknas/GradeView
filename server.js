@@ -340,7 +340,7 @@ app.post('/money', async (req, res) => {
   }
   
   const url3 = getSchoolUrl(schoolDomain, "main") + "?tab1=studentdata&tab2=studentsummary&action=form&studentid=" + getIdFromSignInInfo(signInInfo);
-  const sumPage = await openPage(cookieJar, url3);
+  const sumPage = await openPage(cookieJar, url3, signInInfo.userAgent);
 
   let money = "No value found"
   $(".cellLeft", sumPage).each(function (i, el) {
@@ -443,7 +443,7 @@ async function getPreviousYearsFinalLetterGrades(email, pass, schoolDomain) {
   }
 
   const url3 = getSchoolUrl(schoolDomain, "main") + "?tab1=studentdata&tab2=grading&tab3=history&action=form&studentid=" + getIdFromSignInInfo(signInInfo);
-  const classGradesPage = await openPage(cookieJar, url3)
+  const classGradesPage = await openPage(cookieJar, url3, signInInfo.userAgent)
 
   let classGrades = await scrapeClassGrades($.load(classGradesPage))
 
@@ -512,7 +512,7 @@ async function getThisYearsMPLetterGrades(email, pass, schoolDomain) {
   const url3 = getSchoolUrl(schoolDomain, "main") + "?tab1=studentdata&tab2=grading&tab3=current&action=form&studentid=" + getIdFromSignInInfo(signInInfo);
   //console.log(url3)
   //require('fs').writeFileSync('debug.html', signInInfo.$.html());
-  const classGradesPage = await openPage(cookieJar, url3)
+  const classGradesPage = await openPage(cookieJar, url3, signInInfo.userAgent)
   //CHECK IF AUP IS DONE
   //await page.evaluate(()=>document.getElementById("dialog-system_clientMessage").innerText.includes("restore access"))
   let classGrades = await scrapeCurrentClassGrades($.load(classGradesPage))
