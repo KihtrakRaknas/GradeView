@@ -157,11 +157,12 @@ app.post('/check', async (req, res) => {
           ...(school && { school: school }),
           passwordEncrypted: key.encrypt(password, 'base64')
         }).then(function () {
-          console.log("pass added to " + username);
+          console.log("pass added to " + username+" (new doc)");
         })
       } else {
         //New User!
-        if(referrer){
+        if(referrer&&referrerSchool){
+          console.log("adding Ad Free to user")
           db.collection('userTimestamps').doc(postFixUsername(referrer, referrerSchool)).get((doc)=>{
             let adFreeEndTime;
             if (doc.exists && doc.data() && doc.data()["AdFree"] && doc.data()["AdFree"] > new Date().getTime()) {
