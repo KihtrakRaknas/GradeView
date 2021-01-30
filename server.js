@@ -171,11 +171,12 @@ app.post('/check', async (req, res) => {
               adFreeEndTime = new Date().getTime()
             }
             adFreeEndTime+=1000*60*60*24*30
+            console.log(adFreeEndTime)
             db.collection('userTimestamps').doc(postFixUsername(referrer, referrerSchool)).set({
               AdFree: adFreeEndTime
             },{merge: true}).then(function () {
               console.log(`AdFree added to ${referrer}: ${adFreeEndTime}`);
-            })
+            }).catch(console.log)
           }).catch(console.log)
         }
         userTokenRef.update({
