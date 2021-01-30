@@ -92,7 +92,7 @@ let handleGradeRequest = async (req, res) => {
                 if(docTime.exists && docTime.data()["AdFree"]){
                   dataToReturn["Status"] = docTime.data()["AdFree"]
                 }
-                res.json({dataToReturn})
+                res.json(dataToReturn)
                 console.log("returning cached object")
               } else {
                 console.log("credentials don't match")
