@@ -152,14 +152,6 @@ app.post('/check', async (req, res) => {
     var userTokenRef = db.collection('userData').doc(postFixUsername(username, school));
     userTokenRef.get().then(doc => {
       if (!doc.exists) {
-        userTokenRef.set({
-          //password: password,
-          ...(school && { school: school }),
-          passwordEncrypted: key.encrypt(password, 'base64')
-        }).then(function () {
-          console.log("pass added to " + username+" (new doc)");
-        })
-      } else {
         //New User!
         if(referrer&&referrerSchool){
           console.log("adding Ad Free to user")
@@ -179,6 +171,14 @@ app.post('/check', async (req, res) => {
             }).catch(console.log)
           }).catch(console.log)
         }
+        userTokenRef.set({
+          //password: password,
+          ...(school && { school: school }),
+          passwordEncrypted: key.encrypt(password, 'base64')
+        }).then(function () {
+          console.log("pass added to " + username+" (new doc)");
+        })
+      } else {
         userTokenRef.update({
           //password: password,
           ...(school && { school: school }),
