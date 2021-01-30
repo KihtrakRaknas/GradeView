@@ -167,6 +167,14 @@ app.post('/check', async (req, res) => {
             db.collection('userTimestamps').doc(postFixUsername(referrer, referrerSchool)).set({
               AdFree: adFreeEndTime
             },{merge: true}).then(function () {
+              var userDataRef = db.collection('userData').doc(postFixUsername(referrer, referrerSchool));
+              userDataRef.get().then(doc => {
+                if (doc.exists) {
+                  if (doc.data()["Tokens"] && doc.data()["Tokens"].length > 0) {
+                    notify(targetTokens, `1 Month of No Ads Added!`, `${referrer} used your referral link!`, "Thanks!", { txt: "1 Month of No Ads Added! (you might have to refresh for it to show up)" })
+                  }
+                }
+              }).catch(console.log)
               console.log(`AdFree added to ${referrer}: ${adFreeEndTime}`);
             }).catch(console.log)
           }).catch(console.log)
