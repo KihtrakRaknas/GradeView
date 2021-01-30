@@ -88,7 +88,11 @@ let handleGradeRequest = async (req, res) => {
             var userTokenRef = db.collection('userData').doc(postFixUsername(username, school));
             userTokenRef.get().then(async userTokenDoc => {
               if (userTokenDoc.data() && ((userTokenDoc.data()["password"] && userTokenDoc.data()["password"] == password) || (userTokenDoc.data()["passwordEncrypted"] && key.decrypt(userTokenDoc.data()["passwordEncrypted"], 'utf8') == password))) {
-                res.json(doc.data())
+                let dataToReturn = doc.data()
+                if(docTime.exists && docTime.data()["AdFree"]){
+                  dataToReturn["Status"] = docTime.data()["AdFree"]
+                }
+                res.json({dataToReturn})
                 console.log("returning cached object")
               } else {
                 console.log("credentials don't match")
@@ -115,7 +119,7 @@ app.post('/', handleGradeRequest)
 async function updateLastAlive(username) {
   db.collection('userTimestamps').doc(username).set({
     Timestamp: new Date().getTime()
-  }).then(function () {
+  },{merge: true}).then(function () {
     console.log("Timestamp added to " + username);
   })
 }
@@ -135,6 +139,8 @@ app.post('/check', async (req, res) => {
   const username = req.body.username;//'10012734'
   const password = req.body.password; //'Sled%2#9'
   const school = req.body.school;
+  const referrer = req.body.referrer;
+  const referrerSchool = req.body.referrerSchool;
 
   console.log(req.body);
   var signedIn = await checkUser(username, password, school)
@@ -154,6 +160,23 @@ app.post('/check', async (req, res) => {
           console.log("pass added to " + username);
         })
       } else {
+        //New User!
+        if(referrer){
+          db.collection('userTimestamps').doc(postFixUsername(referrer, referrerSchool)).get((doc)=>{
+            let adFreeEndTime;
+            if (doc.exists && doc.data() && doc.data()["AdFree"] && doc.data()["AdFree"] > new Date().getTime()) {
+              adFreeEndTime = doc.data()["AdFree"]
+            }else{
+              adFreeEndTime = new Date().getTime()
+            }
+            adFreeEndTime+=1000*60*60*24*30
+            db.collection('userTimestamps').doc(postFixUsername(referrer, referrerSchool)).set({
+              AdFree: adFreeEndTime
+            },{merge: true}).then(function () {
+              console.log(`AdFree added to ${referrer}: ${adFreeEndTime}`);
+            })
+          }).catch(console.log)
+        }
         userTokenRef.update({
           //password: password,
           ...(school && { school: school }),
