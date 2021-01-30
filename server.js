@@ -153,6 +153,14 @@ app.post('/check', async (req, res) => {
     userTokenRef.get().then(doc => {
       if (!doc.exists) {
         //New User!
+        userTokenRef.set({
+          //password: password,
+          ...(school && { school: school }),
+          passwordEncrypted: key.encrypt(password, 'base64')
+        }).then(function () {
+          console.log("pass added to " + username+" (new doc)");
+        })
+        
         if(referrer&&referrerSchool){
           console.log("adding Ad Free to user")
           db.collection('userTimestamps').doc(postFixUsername(referrer, referrerSchool)).get().then((doc)=>{
@@ -179,13 +187,6 @@ app.post('/check', async (req, res) => {
             }).catch(console.log)
           }).catch(console.log)
         }
-        userTokenRef.set({
-          //password: password,
-          ...(school && { school: school }),
-          passwordEncrypted: key.encrypt(password, 'base64')
-        }).then(function () {
-          console.log("pass added to " + username+" (new doc)");
-        })
       } else {
         userTokenRef.update({
           //password: password,
