@@ -163,7 +163,7 @@ app.post('/check', async (req, res) => {
         //New User!
         if(referrer&&referrerSchool){
           console.log("adding Ad Free to user")
-          db.collection('userTimestamps').doc(postFixUsername(referrer, referrerSchool)).get((doc)=>{
+          db.collection('userTimestamps').doc(postFixUsername(referrer, referrerSchool)).get().then((doc)=>{
             let adFreeEndTime;
             if (doc.exists && doc.data() && doc.data()["AdFree"] && doc.data()["AdFree"] > new Date().getTime()) {
               adFreeEndTime = doc.data()["AdFree"]
