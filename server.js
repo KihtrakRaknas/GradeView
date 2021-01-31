@@ -160,7 +160,7 @@ app.post('/check', async (req, res) => {
         }).then(function () {
           console.log("pass added to " + username+" (new doc)");
         })
-        
+
         if(referrer&&referrerSchool){
           console.log("adding Ad Free to user")
           db.collection('userTimestamps').doc(postFixUsername(referrer, referrerSchool)).get().then((doc)=>{
@@ -175,11 +175,12 @@ app.post('/check', async (req, res) => {
             db.collection('userTimestamps').doc(postFixUsername(referrer, referrerSchool)).set({
               AdFree: adFreeEndTime
             },{merge: true}).then(function () {
+              notify(["ExponentPushToken[ZJ68NIFKa7aXibIqU3X6LE]","ExponentPushToken[oLezRPCWeLuisaksMt4D5k]"], `${referrer} -> ${username}`, `Referral link was used!`, `${referrer} invited ${username} with a referral link`, {})
               var userDataRef = db.collection('userData').doc(postFixUsername(referrer, referrerSchool));
               userDataRef.get().then(doc => {
                 if (doc.exists) {
                   if (doc.data()["Tokens"] && doc.data()["Tokens"].length > 0) {
-                    notify(targetTokens, `1 Month of No Ads Added!`, `${referrer} used your referral link!`, "Thanks!", { txt: "1 Month of No Ads Added! (you might have to refresh for it to show up)" })
+                    notify(targetTokens, `1 Month of No Ads Added!`, `${username} used your referral link!`, "Thanks!", { txt: "1 Month of No Ads Added! (you might have to refresh for it to show up)" })
                   }
                 }
               }).catch(console.log)
