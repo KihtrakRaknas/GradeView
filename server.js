@@ -512,7 +512,7 @@ async function scrapeCurrentClassGrades($) {
     $(`.list>tbody>tr`).each((i,el)=>{
       const columns = $("td",el)
       const rowClass = $(el).attr('class')
-      if (rowClass && !rowClass.includes("listheading") && columns.length >= 7) {
+      if (rowClass && !rowClass.includes("listheading") && columns.length > 8) {
         const assignData = {};
         const earnedIndex = columnsToRead.find(el => el.header == "EARNED").index
         if (!Number(columns.eq(earnedIndex).text()))
@@ -525,6 +525,7 @@ async function scrapeCurrentClassGrades($) {
             assignData[column.header] = columnText
         })
         assignData["Name"] = columns.eq(columnsToRead.find(el => el.header == "COURSE").index).text().trim().replace(/\s+/g, ' ');
+        console.log(`${assignData["Name"]}: ${columns.length}`)
         assignments.push(assignData);
       }
     })
