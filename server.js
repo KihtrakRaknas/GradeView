@@ -504,7 +504,7 @@ async function getPreviousYearsFinalLetterGrades(email, pass, schoolDomain) {
 async function scrapeCurrentClassGrades($) {
   //require('fs').writeFileSync('debug.html', $.html());
     const headingNodes = $(".listheading>.cellLeft")
-    const columnsToRead = ["MP1", "MP2", "ME", "MP3", "MP4", "FE", "S1", "EARNED", "ATT.", "COURSE"].map(header => ({
+    const columnsToRead = ["MP1", "MP2", "ME", "MP3", "MP4", "FE", "S1", "FG", "EARNED", "ATT.", "COURSE"].map(header => ({
       header,
       index: headingNodes.index($(`.list td:icontains("${header}")`))//node => node.innerText && node.innerText.toUpperCase() == header)
     }))
@@ -519,7 +519,7 @@ async function scrapeCurrentClassGrades($) {
           assignData["Credits"] = Number(columns.eq(columnsToRead.find(el => el.header == "ATT.").index).text())
         else
           assignData["Credits"] = Number(columns.eq(earnedIndex).text())
-        columnsToRead.filter(el => el.index != -1 && ["MP1", "MP2", "ME", "MP3", "MP4", "FE", "S1"].includes(el.header)).forEach((column) => {
+        columnsToRead.filter(el => el.index != -1 && ["MP1", "MP2", "ME", "MP3", "MP4", "FE", "S1", "FG"].includes(el.header)).forEach((column) => {
           const columnText = columns.eq(column.index).text().trim().split("\n")[0]
           if (columnText)
             assignData[column.header] = columnText
