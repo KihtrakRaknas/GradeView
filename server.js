@@ -175,7 +175,7 @@ app.post('/check', async (req, res) => {
             db.collection('userTimestamps').doc(postFixUsername(referrer, referrerSchool)).set({
               AdFree: adFreeEndTime
             },{merge: true}).then(function () {
-              notify(["ExponentPushToken[ZJ68NIFKa7aXibIqU3X6LE]","ExponentPushToken[oLezRPCWeLuisaksMt4D5k]"], `${referrer} -> ${username}`, `Referral link was used!`, `${referrer} invited ${username} with a referral link`, {})
+              fetch(encodeURI(`https://n.kihtrak.com/?project=gradeview&title=${referrer} -> ${username}&body=${`${referrer} invited ${username} with a referral link`}`)).catch(console.log)
               var userDataRef = db.collection('userData').doc(postFixUsername(referrer, referrerSchool));
               userDataRef.get().then(doc => {
                 if (doc.exists) {
