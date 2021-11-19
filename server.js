@@ -1,4 +1,5 @@
 require('dotenv').config();
+const fetch = require('node-fetch')
 const { getCurrentGrades, openAndSignIntoGenesis, getSchoolUrl, getIdFromSignInInfo, postFixUsername, openPage } = require('./GradeViewGetCurrentGrades/getCurrentGrades');
 const $ = require('cheerio');
 const express = require('express')
@@ -237,6 +238,16 @@ app.get('/testNotification', async (req, res) => {
   if (req.query.token)
     setTimeout(() => notify([req.query.token], "Test title", "Test subtitle", "Notification body", { txt: "Testing" }), 30 * 1000)
   return res.send("attempted")
+})
+
+app.get('/dir', async (req, res) => {
+  await fetch(`https://github.com/KihtrakRaknas/DirectoryScraper/raw/master/outputEncoded.txt`).then((fetchRes)=>{
+    fetchRes.text().then((data)=>{
+      const key = new NodeRSA();
+      key.importKey(process.env.DIR_PUBLIC_KEY, 'public');
+      res.json(JSON.parse(key.decryptPublic(data)))
+    })
+  }).catch(console.log)
 })
 
 async function updateGrades(username, password, userRef, school) {
