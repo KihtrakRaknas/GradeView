@@ -32,5 +32,8 @@
   "bugs": {
     "url": "https://github.com/KihtrakRaknas/GradeView/issues"
   },
-  "homepage": "https://github.com/KihtrakRaknas/GradeView#readme"
+  "homepage": "https://github.com/KihtrakRaknas/GradeView#readme",
+  "engines": {
+    "node": "10.x"
+  }
 }
