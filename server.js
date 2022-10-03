@@ -181,7 +181,7 @@ app.post('/check', async (req, res) => {
               userDataRef.get().then(doc => {
                 if (doc.exists) {
                   if (doc.data()["Tokens"] && doc.data()["Tokens"].length > 0) {
-                    notify(targetTokens, `1 Month of No Ads Added!`, `${username} used your referral link!`, "Thanks!", { txt: "1 Month of No Ads Added! (you might have to refresh for it to show up)" })
+                    notify(doc.data()["Tokens"], `1 Month of No Ads Added!`, `${username} used your referral link!`, "Thanks!", { txt: "1 Month of No Ads Added! (you might have to refresh for it to show up)" })
                   }
                 }
               }).catch(console.log)
