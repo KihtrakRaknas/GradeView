@@ -141,7 +141,7 @@ app.post('/testSignIn', async (req, res) => {
   let schoolDomain = req.body.school;
 
   if (!email || !pass || !email.trim() || !pass.trim())
-    return res.text("Email or password is empty");
+    return res.send("Email or password is empty");
   email = encodeURIComponent(email);
   pass = encodeURIComponent(pass);
   const { $ } = await openAndSignIntoGenesis(email, pass, schoolDomain)
