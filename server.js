@@ -3,6 +3,7 @@ const fetch = require('node-fetch')
 const { getCurrentGrades, openAndSignIntoGenesis, getSchoolUrl, getIdFromSignInInfo, postFixUsername, openPage, urlMaster } = require('./GradeViewGetCurrentGrades/getCurrentGrades');
 const $ = require('cheerio');
 const express = require('express')
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const weightingObj = require('./classWeightingOutput.json')
 const Fuse = require('fuse.js')
@@ -37,6 +38,9 @@ const app = express()
 const port = process.env.PORT || 3000
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
+app.use(cors({
+  origin: 'https://gradeview.kihtrak.com'
+}));
 
 var currentUsers = [];
 
