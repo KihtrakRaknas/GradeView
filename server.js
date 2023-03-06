@@ -136,9 +136,9 @@ app.post('/emailList', async (req, res) => {
 });
 
 app.post('/testSignIn', async (req, res) => {
-  const username = req.body.username;
-  const password = req.body.password;
-  const school = req.body.school;
+  let email = req.body.username;
+  let pass = req.body.password;
+  let schoolDomain = req.body.school;
 
   if (!email || !pass || !email.trim() || !pass.trim())
     return res.text("Email or password is empty");
