@@ -135,6 +135,19 @@ app.post('/emailList', async (req, res) => {
   })
 });
 
+app.post('/testSignIn', async (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+  const school = req.body.school;
+
+  if (!email || !pass || !email.trim() || !pass.trim())
+    return res.text("Email or password is empty");
+  email = encodeURIComponent(email);
+  pass = encodeURIComponent(pass);
+  const { $ } = await openAndSignIntoGenesis(email, pass, schoolDomain)
+  return $.html();
+})
+
 app.post('/check', async (req, res) => {
 
   const username = req.body.username;//'10012734'
