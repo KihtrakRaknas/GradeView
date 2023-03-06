@@ -1,6 +1,6 @@
 require('dotenv').config();
 const fetch = require('node-fetch')
-const { getCurrentGrades, openAndSignIntoGenesis, getSchoolUrl, getIdFromSignInInfo, postFixUsername, openPage } = require('./GradeViewGetCurrentGrades/getCurrentGrades');
+const { getCurrentGrades, openAndSignIntoGenesis, getSchoolUrl, getIdFromSignInInfo, postFixUsername, openPage, urlMaster } = require('./GradeViewGetCurrentGrades/getCurrentGrades');
 const $ = require('cheerio');
 const express = require('express')
 const bodyParser = require('body-parser');
@@ -134,6 +134,10 @@ app.post('/emailList', async (req, res) => {
     res.json({ Status: "done" })
   })
 });
+
+app.get('/listSchools', async (req, res) => {
+  return res.json(Object.keys(urlMaster))
+})
 
 app.post('/testSignIn', async (req, res) => {
   let email = req.body.username;
