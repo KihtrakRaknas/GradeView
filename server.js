@@ -145,7 +145,7 @@ app.post('/testSignIn', async (req, res) => {
   email = encodeURIComponent(email);
   pass = encodeURIComponent(pass);
   const { $ } = await openAndSignIntoGenesis(email, pass, schoolDomain)
-  return $.html();
+  return res.send($.html());
 })
 
 app.post('/check', async (req, res) => {
