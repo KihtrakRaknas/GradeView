@@ -155,6 +155,8 @@ app.post('/testSignIn', async (req, res) => {
   email = encodeURIComponent(email);
   pass = encodeURIComponent(pass);
   const { $ } = await openAndSignIntoGenesis(email, pass, schoolDomain)
+  if($ == null)
+    return res.send("Fetch Request Failed");
   return res.send($.html());
 })
 
