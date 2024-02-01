@@ -573,6 +573,7 @@ async function getThisYearsMPLetterGrades(email, pass, schoolDomain) {
   email = encodeURIComponent(email);
   pass = encodeURIComponent(pass);
 
+  console.log("getThisYearsMPLetterGrades started for: " + email)
   const signInInfo = await openAndSignIntoGenesis(email, pass, schoolDomain)
   const cookieJar = signInInfo.cookie
   //Verify Sign in was successful
@@ -589,8 +590,9 @@ async function getThisYearsMPLetterGrades(email, pass, schoolDomain) {
   //await page.evaluate(()=>document.getElementById("dialog-system_clientMessage").innerText.includes("restore access"))
   let classGrades = await scrapeCurrentClassGrades($.load(classGradesPage))
   for (var classIndex in classGrades) {
-    if (findWeight(classGrades[classIndex]["Name"]))
-      classGrades[classIndex]["Weight"] = findWeight(classGrades[classIndex]["Name"])
+    const foundWeight = findWeight(classGrades[classIndex]["Name"])
+    if (foundWeight)
+      classGrades[classIndex]["Weight"] = foundWeight
     if (!classGrades[classIndex]["Weight"]) {
       //console.log("ERR"+classGrades[yr][classIndex]["Name"]+"not found!")
       db.collection('errors').doc("Unknown Classes").update({
