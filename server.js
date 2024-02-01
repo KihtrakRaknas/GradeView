@@ -581,6 +581,7 @@ async function getThisYearsMPLetterGrades(email, pass, schoolDomain) {
     console.log("BAD user||pass")
     return { Status: "Invalid" };
   }
+  console.log("getThisYearsMPLetterGrades signed in for: " + email)
 
   const url3 = getSchoolUrl(schoolDomain, "main") + "?tab1=studentdata&tab2=grading&tab3=current&action=form&studentid=" + getIdFromSignInInfo(signInInfo);
   //console.log(url3)
@@ -588,7 +589,9 @@ async function getThisYearsMPLetterGrades(email, pass, schoolDomain) {
   const classGradesPage = await openPage(cookieJar, url3, signInInfo.userAgent)
   //CHECK IF AUP IS DONE
   //await page.evaluate(()=>document.getElementById("dialog-system_clientMessage").innerText.includes("restore access"))
+  console.log("scrapeCurrentClassGrades started for: " + email)
   let classGrades = await scrapeCurrentClassGrades($.load(classGradesPage))
+  console.log("scrapeCurrentClassGrades finished for: " + email)
   for (var classIndex in classGrades) {
     const foundWeight = findWeight(classGrades[classIndex]["Name"])
     if (foundWeight)
