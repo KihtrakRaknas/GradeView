@@ -480,18 +480,20 @@ async function scrapeClassGrades($) {
   $(".list>tbody>tr").each((i, el) => {
     const columns = $("td",el)
     const rowClass = $(el).attr('class')
-    if (rowClass && !rowClass.includes("listheading") && columns.length >= 7) {
+    if (rowClass && !rowClass.includes("listheading") && columns.length >= 4) {
       var assignData = {};
-      if (!Number(columns.eq(5).text()))
+      const numberRegex = /[\d.]+/g;
+      const numbers = columns.eq(3).text().match(numberRegex)
+      if (!numbers || numbers.length < 2 || !Number(numbers[1]))
         return
-      assignData["Credits"] = Number(columns.eq(5).text())
-      //console.log(node.childNodes);
-      //console.log(node.childNodes[3].innerText);
-      assignData["FG"] = columns.eq(4).text().trim();
-
-      assignData["Name"] = columns.eq(2).text().trim().replace(/\s+/g, ' ');
+      assignData["Credits"] = Number(numbers[1])
+      assignData["FG"] = columns.eq(2).text().trim();
+      const nameDivs = $("div", columns.eq(1))
+      if (nameDivs.length < 2)
+        return
+      assignData["Name"] = nameDivs.eq(1).text().replace(/\s+/g, ' ');
       assignments.push(assignData);
-    } else if (rowClass && !rowClass.includes("listheading") && columns.length >= 4) {
+    } else if (rowClass && !rowClass.includes("listheading") && columns.length >= 2) {
       //year ended
       if (assignments.length > 0)
         years.push(assignments);
