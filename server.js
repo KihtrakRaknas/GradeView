@@ -1,6 +1,6 @@
 require('dotenv').config();
 const fetch = require('node-fetch')
-const { getCurrentGrades, openAndSignIntoGenesis, getSchoolUrl, getIdFromSignInInfo, postFixUsername, openPage, urlMaster } = require('./GradeViewGetCurrentGrades/getCurrentGrades');
+const { getCurrentGrades, openAndSignIntoGenesis, getSchoolUrl, getIdFromSignInInfo, postFixUsername, openPage, urlMaster, initProxies } = require('./GradeViewGetCurrentGrades/getCurrentGrades');
 const $ = require('cheerio');
 const express = require('express')
 const cors = require('cors');
@@ -18,6 +18,8 @@ const NodeCache = require("node-cache");
 const cache = new NodeCache({ stdTTL: 60*10, checkperiod: 60*2 });
 
 let expo = new Expo();
+
+initProxies()
 
 var options = {
   shouldSort: true,
