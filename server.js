@@ -15,7 +15,7 @@ const { Expo } = require('expo-server-sdk')
 key.importKey(process.env.PUBLIC_KEY/*keysObj.public*/, 'pkcs1-public-pem');
 key.importKey(process.env.PRIVATE_KEY/*keysObj.private*/, 'pkcs1-private-pem');
 const NodeCache = require("node-cache");
-const cache = new NodeCache({ stdTTL: 60*5, checkperiod: 60*2 });
+const cache = new NodeCache({ stdTTL: 60*10, checkperiod: 60*2 });
 
 let expo = new Expo();
 
@@ -241,15 +241,12 @@ app.post('/check', async (req, res) => {
 
 })
 
-const respondWithCached = async (cacheKey, res, func) => {
+const respondWithCached = async (cacheKey, res, func, ttl=60*10) => {
   const cacheValue = cache.get(cacheKey)
-  let returnedVal
   if(cacheValue)
-    returnedVal = res.json(cacheValue);
+    return res.json(cacheValue);
   const result = await func()
-  cache.set(cacheKey, result)
-  if(returnedVal)
-    return returnedVal
+  cache.set(cacheKey, result, ttl)
   return res.json(result);
 }
 
@@ -413,28 +410,32 @@ app.post('/money', async (req, res) => {
   var pass = req.body.password; //'Sled%2#9'
   var schoolDomain = req.body.school; //'Sled%2#9'
 
-  email = encodeURIComponent(email);
-  pass = encodeURIComponent(pass);
+  const cacheKey = `money@${postFixUsername(email, schoolDomain)}`
+  return respondWithCached(cacheKey, res, async ()=>{
+    email = encodeURIComponent(email);
+    pass = encodeURIComponent(pass);
 
-  const signInInfo = await openAndSignIntoGenesis(email, pass, schoolDomain)
-  const cookieJar = signInInfo.cookie
-  //Verify Sign in was successful
-  if (!signInInfo.signedIn) {
-    console.log("BAD user||pass")
-    return { Status: "Invalid" };
-  }
-  
-  const url3 = getSchoolUrl(schoolDomain, "main") + "?tab1=studentdata&tab2=studentsummary&action=form&studentid=" + getIdFromSignInInfo(signInInfo);
-  const sumPage = await openPage(cookieJar, url3, signInInfo.userAgent);
-
-  let money = "No value found"
-  $(".cellLeft", sumPage).each(function (i, el) {
-    if ($(el).text().trim().substring(0, 1) === "$") {
-      money = $(el).text().trim()
+    const signInInfo = await openAndSignIntoGenesis(email, pass, schoolDomain)
+    const cookieJar = signInInfo.cookie
+    //Verify Sign in was successful
+    if (!signInInfo.signedIn) {
+      console.log("BAD user||pass")
+      return { Status: "Invalid" };
     }
-  })
+    
+    const url3 = getSchoolUrl(schoolDomain, "main") + "?tab1=studentdata&tab2=studentsummary&action=form&studentid=" + getIdFromSignInInfo(signInInfo);
+    const sumPage = await openPage(cookieJar, url3, signInInfo.userAgent);
 
-  return res.json({ money });
+    let money = "No value found"
+    $(".cellLeft", sumPage).each(function (i, el) {
+      if ($(el).text().trim().substring(0, 1) === "$") {
+        money = $(el).text().trim()
+      }
+    })
+
+    return res.json({ money });
+  },
+  60*2)
 
 })
 
