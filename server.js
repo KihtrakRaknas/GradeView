@@ -14,6 +14,8 @@ const bwipjs = require('bwip-js');
 const { Expo } = require('expo-server-sdk')
 key.importKey(process.env.PUBLIC_KEY/*keysObj.public*/, 'pkcs1-public-pem');
 key.importKey(process.env.PRIVATE_KEY/*keysObj.private*/, 'pkcs1-private-pem');
+const NodeCache = require("node-cache");
+const cache = new NodeCache({ stdTTL: 60*5, checkperiod: 60*2 });
 
 let expo = new Expo();
 
@@ -239,14 +241,25 @@ app.post('/check', async (req, res) => {
 
 })
 
-app.post('/oldGrades', async (req, res) => {
+const respondWithCached = async (cacheKey, res, func) => {
+  const cacheValue = cache.get(cacheKey)
+  let returnedVal
+  if(cacheValue)
+    returnedVal = res.json(cacheValue);
+  const result = await func()
+  cache.set(cacheKey, result)
+  if(returnedVal)
+    return returnedVal
+  return res.json(result);
+}
 
+app.post('/oldGrades', async (req, res) => {
   const username = req.body.username;//'10012734'
   const password = req.body.password; //'Sled%2#9'
   const schoolDomain = req.body.school;
 
-  return res.json(await getPreviousYearsFinalLetterGrades(username, password, schoolDomain));
-
+  const cacheKey = `oldGrades@${postFixUsername(username, schoolDomain)}`
+  return respondWithCached(cacheKey, res, ()=>getPreviousYearsFinalLetterGrades(username, password, schoolDomain))
 })
 
 
@@ -256,7 +269,8 @@ app.post('/newGrades', async (req, res) => {
   const password = req.body.password; //'Sled%2#9'
   const schoolDomain = req.body.school;
 
-  return res.json(await getThisYearsMPLetterGrades(username, password, schoolDomain));
+  const cacheKey = `newGrades@${postFixUsername(username, schoolDomain)}`
+  return respondWithCached(cacheKey, res, ()=>getThisYearsMPLetterGrades(username, password, schoolDomain))
 })
 
 app.get('/testNotification', async (req, res) => {
