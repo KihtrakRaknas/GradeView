@@ -547,7 +547,7 @@ async function scrapeCurrentClassGrades($) {
       index: headingNodes.index($(`.list td:icontains("${header}")`))//node => node.innerText && node.innerText.toUpperCase() == header)
     }))
     const assignments = [];
-    $(`.list>tbody>tr`).each((i,el)=>{
+    $('.list').first().find(`tbody>tr`).each((i,el)=>{
       const columns = $("td",el)
       const rowClass = $(el).attr('class')
       if (rowClass && !rowClass.includes("listheading") && columns.length > 8) {
