@@ -18,6 +18,7 @@
     "nodemailer": "^6.3.1",
     "nodemon": "^1.18.10",
     "p-retry": "^4.2.0",
+    "proxy-lists": "^1.23.3",
     "user-agents": "^1.0.559"
   },
   "devDependencies": {},
@@ -35,6 +36,6 @@
   },
   "homepage": "https://github.com/KihtrakRaknas/GradeView#readme",
   "engines": {
-    "node": "10.x"
+    "node": "16.x"
   }
 }
