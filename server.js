@@ -19,7 +19,8 @@ const cache = new NodeCache({ stdTTL: 60*10, checkperiod: 60*2 });
 
 let expo = new Expo();
 
-initProxies()
+if(process.env.USE_PROXY)
+  initProxies()
 
 var options = {
   shouldSort: true,
